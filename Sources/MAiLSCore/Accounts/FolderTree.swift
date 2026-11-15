@@ -36,15 +36,22 @@ public enum FolderTree {
     // MARK: Construction
 
     /// Arbre des dossiers sans rôle (les principaux ont leur place fixe). Les niveaux manquants deviennent des parents implicites.
-    public static func build(_ folders: [FolderSummary]) -> [FolderNode] {
+    ///
+    /// Un sous-dossier d'un dossier principal (« Archive/2022 ») se range sous un niveau qui porte le nom affiché de ce dossier
+    /// (`displayName`) mais n'est pas sélectionnable : le dossier principal lui-même reste dans la liste fixe du haut.
+    /// Un dossier principal sans sous-dossier n'apparaît pas dans l'arbre.
+    public static func build(
+        _ folders: [FolderSummary], displayName: (FolderSummary) -> String = { $0.displayPath }
+    ) -> [FolderNode] {
         final class Builder {
             let path: String
-            let name: String
+            var name: String
             var folder: FolderSummary?
             var children: [String: Builder] = [:]
             init(path: String, name: String) { self.path = path; self.name = name }
         }
         var roots: [String: Builder] = [:]
+        let roleFolders = Dictionary(folders.filter { $0.role != nil }.map { ($0.path, $0) }, uniquingKeysWith: { first, _ in first })
         for folder in folders where folder.role == nil {
             let delimiter = folder.delimiter.isEmpty ? "/" : folder.delimiter
             let parts = folder.path.components(separatedBy: delimiter)
@@ -55,6 +62,7 @@ public enum FolderTree {
                 let existing: Builder?
                 if let current { existing = current.children[prefix] } else { existing = roots[prefix] }
                 let node = existing ?? Builder(path: prefix, name: MailboxText.decode(part))
+                if existing == nil, let parent = roleFolders[prefix] { node.name = displayName(parent) }
                 if existing == nil {
                     if let current { current.children[prefix] = node } else { roots[prefix] = node }
                 }
@@ -81,11 +89,17 @@ public enum FolderTree {
     // MARK: Aplatissement
 
     /// Lignes visibles : un nœud est déplié si son chemin est dans `expanded`. `hideEmpty` masque les dossiers connus vides.
-    public static func rows(_ roots: [FolderNode], expanded: Set<String>, hideEmpty: Bool) -> [FolderRow] {
+    /// `keeping` : chemins qui restent visibles même vides (le dossier ouvert), avec leurs parents.
+    public static func rows(
+        _ roots: [FolderNode], expanded: Set<String>, hideEmpty: Bool, keeping: Set<String> = []
+    ) -> [FolderRow] {
         var out: [FolderRow] = []
+        func shown(_ node: FolderNode) -> Bool {
+            !hideEmpty || node.hasContent || keeping.contains(node.id) || node.children.contains(where: shown)
+        }
         func visit(_ node: FolderNode, depth: Int) {
-            guard !hideEmpty || node.hasContent else { return }
-            let kids = hideEmpty ? node.children.filter(\.hasContent) : node.children
+            guard shown(node) else { return }
+            let kids = hideEmpty ? node.children.filter(shown) : node.children
             let open = !kids.isEmpty && expanded.contains(node.id)
             out.append(FolderRow(
                 id: node.id, name: node.name, depth: depth, folder: node.folder, hasChildren: !kids.isEmpty, isExpanded: open,

@@ -104,8 +104,12 @@ struct StoreQueryTests {
         try await store.setFolderStatuses(accountID: account, [(path: "Factures", counts: FolderCounts(messages: 30, unseen: 4)), (path: "Inconnu", counts: FolderCounts(messages: 1, unseen: 1))])
         let factures = try await summary(never.id)
         #expect(factures.countsKnown && factures.messageCount == 30 && factures.unreadCount == 4 && factures.delimiter == "/")
-        // Dossier synchronisé : ses messages locaux priment sur STATUS.
+        // Dossier ouvert à une session précédente : STATUS, plus récent que les messages gardés en base, prime...
         try await store.setFolderStatuses(accountID: account, [(path: "INBOX", counts: FolderCounts(messages: 999, unseen: 999))])
+        let stale = try await summary(synced.id)
+        #expect(stale.messageCount == 999 && stale.unreadCount == 999)
+        // ... jusqu'à ce que le dossier soit synchronisé : les messages locaux sont alors à jour et reprennent la main.
+        try await store.setFolderState(folderID: synced.id, uidValidity: 1, uidNext: 3, syncFloor: 1, now: 2)
         let inbox = try await summary(synced.id)
         #expect(inbox.messageCount == 2 && inbox.unreadCount == 1)
         // Épinglés et séparateur.

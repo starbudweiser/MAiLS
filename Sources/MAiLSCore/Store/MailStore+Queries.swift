@@ -86,18 +86,20 @@ extension MailStore {
                 FROM folders f LEFT JOIN messages m ON m.folder_id = f.id
                 WHERE f.account_id = ? GROUP BY f.id
                 """, arguments: [accountID]).map { row in
-                // Dossier synchronisé (ou en cours de synchro) : compteurs locaux. Sinon : compteurs lus par STATUS, s'ils existent.
-                let synced = (row["last_sync_at"] as Int64?) != nil || (row["total"] as Int) > 0
+                // Compteurs lus par STATUS : toujours les plus récents quand ils existent (une synchro du dossier les efface,
+                // les messages locaux sont alors à jour). Sinon : compteurs locaux si le dossier a été synchronisé.
+                let local = (row["last_sync_at"] as Int64?) != nil || (row["total"] as Int) > 0
                 let statusMessages: Int? = row["status_messages"]
                 let statusUnseen: Int? = row["status_unseen"]
                 let delimiter: String? = row["delimiter"]
+                let messages: Int = statusMessages ?? (local ? row["total"] : 0)
+                let unread: Int = statusMessages != nil ? (statusUnseen ?? 0) : (local ? row["unread"] : 0)
                 return FolderSummary(
                     id: row["id"], path: row["path"], role: row["role"], uidValidity: row["uid_validity"],
-                    messageCount: synced ? row["total"] : (statusMessages ?? 0),
-                    unreadCount: synced ? row["unread"] : (statusUnseen ?? 0),
+                    messageCount: messages, unreadCount: unread,
                     delimiter: delimiter ?? "/",
                     pinned: (row["pinned"] as Int) != 0,
-                    countsKnown: synced || statusMessages != nil)
+                    countsKnown: local || statusMessages != nil)
             }
         }
     }

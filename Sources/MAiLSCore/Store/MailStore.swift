@@ -223,7 +223,7 @@ public final class MailStore: Sendable {
     ) async throws {
         try await pool.write { db in
             try db.execute(
-                sql: "UPDATE folders SET uid_validity = ?, uid_next = ?, sync_floor = ?, last_sync_at = ? WHERE id = ?",
+                sql: "UPDATE folders SET uid_validity = ?, uid_next = ?, sync_floor = ?, last_sync_at = ?, status_messages = NULL, status_unseen = NULL WHERE id = ?",
                 arguments: [uidValidity, uidNext, syncFloor, now, folderID])
         }
     }

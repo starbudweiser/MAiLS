@@ -76,3 +76,5 @@
 "sidebar.footer" = "%@ · %d dossiers";
 "sidebar.unread" = "%@, %d non lus";
 "menu.jump" = "Aller à un dossier";
+"sidebar.expand" = "Déplier";
+"sidebar.collapse" = "Replier";

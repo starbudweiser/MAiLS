@@ -68,6 +68,8 @@ final class AppModel {
 
     private var observers: [Task<Void, Never>] = []
     private var openTask: Task<Void, Never>?
+    private var openFolderTask: Task<Void, Never>?
+    private var deferFolderOpen = false
     private var started = false
 
     init(store: MailStore, bodyCache: BodyCache, secrets: KeychainSecretStore) {
@@ -171,9 +173,22 @@ final class AppModel {
     /// Vrai pour les cinq principaux (suivis en continu) ; les autres dossiers, indésirables compris, ne se synchronisent qu'à l'ouverture.
     static func isMainFolder(_ folder: FolderSummary) -> Bool { folder.role.map(roleOrder.contains) ?? false }
 
+    /// Un clic ouvre (synchronise) le dossier tout de suite ; aux flèches, seulement si on s'y arrête (sinon chaque dossier survolé
+    /// serait synchronisé en entier et retenu).
     private func openSelectedFolderIfNeeded() {
+        openFolderTask?.cancel()
+        openFolderTask = nil
         guard let folder = folders.first(where: { $0.id == selectedFolderID }), !Self.isMainFolder(folder) else { return }
-        Task { await session?.openFolder(path: folder.path) }
+        let path = folder.path
+        if deferFolderOpen {
+            openFolderTask = Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(400))
+                guard !Task.isCancelled, let self, self.selectedFolder?.path == path else { return }
+                await self.session?.openFolder(path: path)
+            }
+        } else {
+            Task { await session?.openFolder(path: path) }
+        }
     }
 
     func refreshFolders() async {
@@ -182,11 +197,9 @@ final class AppModel {
             let (a, b) = (Self.rank($0), Self.rank($1))
             return a != b ? a < b : $0.displayPath.localizedStandardCompare($1.displayPath) == .orderedAscending
         }
-        tree = FolderTree.build(folders)
+        tree = FolderTree.build(folders) { [self] in displayName(for: $0) }
         if selectedFolderID == nil || !folders.contains(where: { $0.id == selectedFolderID }) {
             selectedFolderID = folders.first(where: { $0.role == "inbox" })?.id ?? folders.first?.id
-        } else {
-            expandAncestorsOfSelection()
         }
     }
 
@@ -200,7 +213,10 @@ final class AppModel {
     var pinnedFolders: [FolderSummary] {
         folders.filter(\.pinned).sorted { $0.displayPath.localizedStandardCompare($1.displayPath) == .orderedAscending }
     }
-    var treeRows: [FolderRow] { FolderTree.rows(tree, expanded: expandedPaths, hideEmpty: hideEmptyFolders) }
+    var treeRows: [FolderRow] {
+        let keep = selectedFolder.flatMap { $0.role == nil ? Set([$0.path]) : nil } ?? []
+        return FolderTree.rows(tree, expanded: expandedPaths, hideEmpty: hideEmptyFolders, keeping: keep)
+    }
     var treeFolderCount: Int { folders.filter { $0.role == nil }.count }
     var jumpResults: [FolderSummary] {
         FolderTree.search(folders, query: jumpText) { [self] in displayName(for: $0) }
@@ -266,27 +282,69 @@ final class AppModel {
 
     // MARK: Clavier dans la barre latérale
 
-    /// Dossiers atteignables aux flèches, dans l'ordre affiché : principaux puis arbre.
-    private var navigationFolderIDs: [Int64] { mainFolders.map(\.id) + treeRows.compactMap { $0.folder?.id } }
-
-    func moveSelection(_ delta: Int) {
-        let ids = navigationFolderIDs
-        guard !ids.isEmpty else { return }
-        let i = selectedFolderID.flatMap { ids.firstIndex(of: $0) } ?? (delta > 0 ? -1 : ids.count)
-        selectFolder(ids[min(max(i + delta, 0), ids.count - 1)])
+    /// Une ligne de la barre latérale atteignable aux flèches : `key` identifie la ligne (« m: » principal, « t: » arbre),
+    /// `folderID` est nil pour un niveau qui n'est pas un dossier (on le saute).
+    private struct NavigationItem {
+        let key: String
+        let folderID: Int64?
     }
 
-    /// Flèche droite : déplie, ou descend sur le premier sous-dossier.
+    /// Lignes dans l'ordre affiché : principaux puis arbre. Par ligne, pas par dossier : aucune ligne n'est confondue avec une autre.
+    private var navigationItems: [NavigationItem] {
+        mainFolders.map { NavigationItem(key: "m:\($0.id)", folderID: $0.id) }
+            + treeRows.map { NavigationItem(key: "t:\($0.id)", folderID: $0.folder?.id) }
+    }
+
+    /// Sélection au clavier : le dossier n'est ouvert (synchronisé) que si on s'y arrête.
+    private func selectFromKeyboard(_ id: Int64) {
+        deferFolderOpen = true
+        selectFolder(id)
+        deferFolderOpen = false
+    }
+
+    func moveSelection(_ delta: Int) {
+        let items = navigationItems
+        guard !items.isEmpty else { return }
+        var start: Int?
+        if let current = selectedFolder {
+            let key = current.role == nil ? "t:\(current.path)" : "m:\(current.id)"
+            start = items.firstIndex { $0.key == key }
+            if start == nil {
+                // Le dossier ouvert est caché (parent replié) : on part de la ligne visible de son plus proche parent.
+                for path in FolderTree.ancestorPaths(of: current).reversed() {
+                    if let i = items.firstIndex(where: { $0.key == "t:\(path)" }) { start = i; break }
+                }
+            }
+        }
+        var i = start ?? (delta > 0 ? -1 : items.count)
+        repeat { i += delta } while items.indices.contains(i) && items[i].folderID == nil
+        guard items.indices.contains(i), let id = items[i].folderID else { return }  // au bout de la liste : on reste
+        selectFromKeyboard(id)
+    }
+
+    /// Flèche droite : déplie, ou descend sur le premier sous-dossier (un niveau qui n'est pas un dossier se déplie d'abord).
+    /// Sans effet sur un dossier principal de la liste fixe.
     func expandOrDescend() {
-        guard let folder = selectedFolder, let row = treeRows.first(where: { $0.id == folder.path }), row.hasChildren else { return }
-        if row.isExpanded { moveSelection(1) } else { toggleExpanded(row.id) }
+        guard let current = selectedFolder, current.role == nil else { return }
+        let rows = treeRows
+        guard let index = rows.firstIndex(where: { $0.id == current.path }), rows[index].hasChildren else { return }
+        let row = rows[index]
+        if !row.isExpanded { toggleExpanded(row.id); return }
+        for next in rows[(index + 1)...] {
+            guard next.depth > row.depth else { return }
+            if let id = next.folder?.id { selectFromKeyboard(id); return }
+            if next.hasChildren && !next.isExpanded { toggleExpanded(next.id); return }
+        }
     }
 
     /// Flèche gauche : replie, ou remonte sur le dossier parent.
     func collapseOrAscend() {
-        guard let current = selectedFolder, let row = treeRows.first(where: { $0.id == current.path }) else { return }
+        guard let current = selectedFolder, current.role == nil, let row = treeRows.first(where: { $0.id == current.path }) else { return }
         if row.isExpanded { toggleExpanded(row.id); return }
-        if let parent = FolderTree.ancestorPaths(of: current).last.flatMap({ self.folder(atPath: $0) }) { selectFolder(parent.id) }
+        // Le plus proche parent qui est un dossier (les niveaux que le serveur ne liste pas sont sautés).
+        for path in FolderTree.ancestorPaths(of: current).reversed() {
+            if let parent = folder(atPath: path) { selectFromKeyboard(parent.id); return }
+        }
     }
 
     private func rebuildQuery() {
@@ -327,6 +385,8 @@ final class AppModel {
         try? await bodyCache.clear()
         self.account = nil
         folders = []
+        tree = []
+        expandedPaths = []
         query = nil
         reader = .none
         selectedUID = nil

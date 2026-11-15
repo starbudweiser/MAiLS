@@ -273,12 +273,15 @@ public actor AccountSession {
 
     /// Lit les compteurs d'un lot de dossiers (`STATUS`, lecture seule) puis les enregistre. Un refus ponctuel n'interrompt rien.
     private func runStatusBatch(_ session: IMAPSession) async throws {
-        let batch = Array(statusQueue.prefix(25))
-        statusQueue.removeFirst(batch.count)
         var results: [(path: String, counts: FolderCounts)] = []
-        for path in batch {
+        var attempted: Set<String> = []
+        for path in Array(statusQueue.prefix(25)) {
+            // Un message à ouvrir ou une synchro demandée passe avant la suite des compteurs (au moins un dossier par tour).
+            if !attempted.isEmpty, !bodyRequests.isEmpty || !syncQueue.isEmpty { break }
+            attempted.insert(path)
             do { results.append((path, try await session.status(path))) } catch MoteurError.commandFailed { continue }
         }
+        statusQueue.removeAll { attempted.contains($0) }  // par valeur : la file a pu être refaite pendant les attentes
         try await store.setFolderStatuses(accountID: accountID, results)
     }
 

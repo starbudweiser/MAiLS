@@ -76,3 +76,5 @@
 "sidebar.footer" = "%@ · %d carpetas";
 "sidebar.unread" = "%@, %d sin leer";
 "menu.jump" = "Ir a una carpeta";
+"sidebar.expand" = "Expandir";
+"sidebar.collapse" = "Contraer";

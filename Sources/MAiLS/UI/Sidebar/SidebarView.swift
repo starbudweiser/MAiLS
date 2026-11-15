@@ -50,13 +50,17 @@ struct SidebarView: View {
             .onKeyPress(.downArrow) { model.moveSelection(1); return .handled }
             .onKeyPress(.rightArrow) { model.expandOrDescend(); return .handled }
             .onKeyPress(.leftArrow) { model.collapseOrAscend(); return .handled }
-            .onChange(of: model.selectedFolderID) {
-                guard let folder = model.selectedFolder else { return }
-                let target = folder.role == nil ? "t:\(folder.path)" : "m:\(folder.id)"
-                // Laisse l'arbre se déplier avant de défiler jusqu'au dossier.
-                Task { @MainActor in proxy.scrollTo(target) }
-            }
+            .onChange(of: model.selectedFolderID) { scrollToSelection(proxy) }
+            // Après « Aller à un dossier » la liste vient de reparaître : elle défile elle aussi jusqu'au dossier choisi.
+            .onAppear { scrollToSelection(proxy) }
         }
+    }
+
+    private func scrollToSelection(_ proxy: ScrollViewProxy) {
+        guard let folder = model.selectedFolder else { return }
+        let target = folder.role == nil ? "t:\(folder.path)" : "m:\(folder.id)"
+        // Laisse l'arbre se déplier avant de défiler jusqu'au dossier.
+        Task { @MainActor in proxy.scrollTo(target) }
     }
 
     /// Un clic donne aussi le clavier à la liste : les flèches naviguent ensuite entre les dossiers.
@@ -113,11 +117,16 @@ private struct JumpResults: View {
                 .padding(.top, Socle.M.space2)
             Spacer(minLength: 0)
         } else {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(results.enumerated()), id: \.element.id) { index, folder in
-                        JumpResultRow(folder: folder, highlighted: index == model.jumpIndex)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(results.enumerated()), id: \.element.id) { index, folder in
+                            JumpResultRow(folder: folder, highlighted: index == model.jumpIndex).id(folder.id)
+                        }
                     }
+                }
+                .onChange(of: model.jumpIndex) {
+                    if results.indices.contains(model.jumpIndex) { proxy.scrollTo(results[model.jumpIndex].id) }
                 }
             }
         }
@@ -370,6 +379,8 @@ private struct TreeRowView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(row.unread > 0 ? L("sidebar.unread", row.name, row.unread) : row.name)
+            .accessibilityAddTraits(selected ? .isSelected : [])
         }
         .padding(.leading, Socle.M.space3)
         .padding(.trailing, Socle.M.space3)
@@ -391,8 +402,6 @@ private struct TreeRowView: View {
             }
             Button(L("sidebar.collapseAll")) { model.collapseAll() }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(row.unread > 0 ? L("sidebar.unread", row.name, row.unread) : row.name)
     }
 
     @ViewBuilder private var chevron: some View {
@@ -405,6 +414,7 @@ private struct TreeRowView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(row.isExpanded ? L("sidebar.collapse") : L("sidebar.expand"))
         } else {
             Color.clear.frame(width: Layout.chevron, height: 1)
         }

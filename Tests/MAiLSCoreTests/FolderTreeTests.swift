@@ -51,6 +51,33 @@ struct FolderTreeTests {
         #expect(onlyEmpty.isEmpty)
     }
 
+    @Test func dossierOuvertResteVisibleMemeVide() {
+        let tree = FolderTree.build(sample)
+        let open: Set<String> = ["ADMINISTRATIONS", "ADMINISTRATIONS/BANQUE"]
+        let hidden = FolderTree.rows(tree, expanded: open, hideEmpty: true)
+        #expect(!hidden.contains { $0.name == "LCL" })
+        let kept = FolderTree.rows(tree, expanded: open, hideEmpty: true, keeping: ["ADMINISTRATIONS/BANQUE/LCL"])
+        #expect(kept.map(\.name) == ["ADMINISTRATIONS", "BANQUE", "LCL", "PAYPAL", "CAF", "Été", "EMPLOI"])
+        // Même sans dossier vide à garder, rien ne change.
+        #expect(FolderTree.rows(tree, expanded: open, hideEmpty: false, keeping: ["EMPLOI"]).count == 7)
+    }
+
+    @Test func sousDossiersD_unDossierPrincipalSousLui() {
+        let all = [
+            folder(1, "INBOX", role: "inbox"), folder(2, "INBOX/Travail"), folder(3, "Archive", role: "archive"),
+            folder(4, "Archive/2022"), folder(5, "Perso"),
+        ]
+        let tree = FolderTree.build(all) { $0.role == "inbox" ? "Réception" : $0.displayPath }
+        #expect(tree.map(\.name) == ["Archive", "Perso", "Réception"])
+        let inbox = tree.first { $0.name == "Réception" }
+        // Le niveau porte le nom affiché, mais n'est pas un dossier : la Réception reste sélectionnable une seule fois, en haut.
+        #expect(inbox?.folder == nil && inbox?.children.map(\.name) == ["Travail"])
+        #expect(tree.contains { $0.id == "Archive" && $0.folder == nil })
+        #expect(FolderTree.rows(tree, expanded: [], hideEmpty: false).allSatisfy { $0.folder?.role == nil })
+        // Un dossier principal sans sous-dossier ne double pas son entrée fixe.
+        #expect(FolderTree.build([folder(1, "INBOX", role: "inbox"), folder(5, "Perso")]).map(\.name) == ["Perso"])
+    }
+
     @Test func parentSansEnfantVisibleDevientUneFeuille() {
         let tree = FolderTree.build([folder(1, "A"), folder(2, "A/B", messages: 0)])
         let rows = FolderTree.rows(tree, expanded: ["A"], hideEmpty: true)

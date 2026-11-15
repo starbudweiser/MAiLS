@@ -76,3 +76,5 @@
 "sidebar.footer" = "%@ · %d folders";
 "sidebar.unread" = "%@, %d unread";
 "menu.jump" = "Go to a Folder";
+"sidebar.expand" = "Expand";
+"sidebar.collapse" = "Collapse";
