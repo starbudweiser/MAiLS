@@ -3,7 +3,7 @@ import AppKit
 import SwiftUI
 
 enum BrandStyle {
-    /// Couleur du logo de MAiLS (provisoire, voir `Brand.logoColor`).
+    /// Couleur du logo de MAiLS (voir `Brand.logoColor`).
     static let color = NSColor(Brand.logoColor)
 
     /// Texte dont la lettre minuscule de chaque occurrence du nom est colorée ; le reste garde ses attributs.

@@ -29,5 +29,5 @@ Référence : `/Volumes/SKYRIM/TOOLS/DESIGN/Socle` (README, `tokens.json`) ; ver
 Barre latérale ≥ `Socle.M.sizeSidebarMin` (200), liste ≈ 340 (300–450), lecture ≥ 480, ligne de message 64 px.
 
 ## 4. À décider
-- **Couleur du logo, donc du « i »** : provisoire #FF6B2B (sombre) / #EA580C (clair). Contraste du « i » mesuré : 5,9:1 sur fond sombre, 3,2:1 sur fond clair Socle (sous les 4,5:1 d'un petit texte) : à trancher avec le logo.
+- **Couleur du logo, donc du « i »** : orange #FF6B2B, **validée par Stéphan le 15/11/2026** avec l'icône (`assets/MAiLS.icns`, concept A : enveloppe blanche sur fond orange ; sources dans `assets/icon-work/`). Contraste du « i » mesuré : 5,9:1 sur fond sombre, 3,2:1 sur fond clair Socle (sous les 4,5:1 d'un petit texte).
 - **Icône de la barre de menus** (si MAiLS en a une) : silhouette en couleur ou monochrome ? Question à poser avant de la dessiner.

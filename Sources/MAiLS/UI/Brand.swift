@@ -33,7 +33,7 @@ public enum Brand {
 import SwiftUI
 
 extension Brand {
-    /// Couleur du logo, donc du « i » de MAiLS. PROVISOIRE (orange Vortex #FF6B2B) tant que le logo n'existe pas :
-    /// voir docs/DESIGN_SYSTEM.md, « À décider ». Seul endroit où cette couleur est écrite.
+    /// Couleur du logo, donc du « i » de MAiLS : orange #FF6B2B, validée le 15/11/2026 avec l'icône (assets/MAiLS.icns).
+    /// Seul endroit où cette couleur est écrite.
     static let logoColor = Color(nsColor: NSColor(srgbRed: 1.0, green: 0.4196, blue: 0.1686, alpha: 1))
 }
