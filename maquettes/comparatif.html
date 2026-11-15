@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MAiLS — Comparatif de design : AppTheme ou Socle</title>
+<style>
+/* ───────── Page (neutre, hors maquettes) ───────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{background:#131416;color:#e4e5e8;font:14px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;padding:0 28px 72px}
+.top{background:#131416;border-bottom:1px solid #2a2b2f;margin:0 -28px 24px;padding:14px 28px}
+.top h1{font-size:18px;font-weight:700;letter-spacing:.01em}
+.top h1 span{color:#8b8e96;font-weight:500}
+.ctl{display:flex;flex-wrap:wrap;gap:18px 28px;margin-top:10px;align-items:center}
+.grp{display:flex;align-items:center;gap:8px}
+.grp>label{font-size:12px;color:#8b8e96}
+.sg{display:flex;background:#1d1e21;border:1px solid #2a2b2f;border-radius:7px;padding:2px;gap:2px}
+.sg button{font:inherit;font-size:12.5px;color:#a2a5ad;background:none;border:0;border-radius:5px;padding:4px 12px;cursor:pointer}
+.sg button.on{background:#34363c;color:#fff}
+.keys{font-size:12px;color:#6f727a;margin-left:auto}
+.keys kbd{font:500 11px ui-monospace,Menlo,monospace;background:#1d1e21;border:1px solid #2a2b2f;border-radius:4px;padding:1px 5px;color:#a2a5ad}
+.stage{max-width:2500px;margin:0 auto}
+.stage.side{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.stage.stack{display:flex;flex-direction:column;gap:36px}
+.slot.off{display:none}
+.slot h2{display:flex;align-items:baseline;gap:10px;font-size:16px;margin-bottom:4px}
+.slot h2 i{font-style:normal;font:700 12px ui-monospace,Menlo,monospace;background:#e4e5e8;color:#131416;border-radius:4px;padding:1px 7px}
+.slot p{font-size:12.5px;color:#8b8e96;margin-bottom:10px;min-height:19px}
+.frame{position:relative;overflow:hidden}
+.frame .w{transform-origin:0 0;position:absolute;left:0;top:0}
+.doc{max-width:1180px;margin:56px auto 0}
+.doc h3{font-size:17px;margin:34px 0 12px}
+.doc p,.doc li{color:#b5b8bf;font-size:13.5px}
+.doc ul{padding-left:20px;display:grid;gap:6px}
+.doc b{color:#e4e5e8}
+table.cmpt{width:100%;border-collapse:collapse;font-size:13px}
+.cmpt th,.cmpt td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid #26272b}
+.cmpt th{font-size:12px;color:#8b8e96;font-weight:600;border-bottom:1px solid #3a3c42}
+.cmpt td:first-child{color:#8b8e96;width:15%;white-space:nowrap}
+.cmpt td{color:#d3d5da}
+.cmpt .bad{color:#f0a37e}.cmpt .good{color:#8fd9a8}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.box{border:1px solid #2a2b2f;border-radius:8px;padding:16px 18px}
+.box h4{font-size:13.5px;margin-bottom:8px}
+
+/* ───────── Maquettes : variables par design et par mode ───────── */
+.w.a[data-m=dark]{--side:#121316;--list:#18191D;--canvas:#1E2025;--elev:#262930;--hover:#23262E;--sel:#2B303B;--line:#2A2D35;--line2:#3B404C;--t1:#F2F4F8;--tb:#F2F4F8;--t2:#9CA3AF;--t3:#6B7280;--brand:#FF6B2B;--brandon:#111827;--mark:#3B82F6;--link:#3B82F6;--ok:#22C55E;--warn:#F59E0B;--bad:#EF4444;--ctl:#262930;--field:#262930;--okbg:#262930;--okline:#2A2D35;--iname:#FF6B2B}
+.w.a[data-m=light]{--side:#F3F4F6;--list:#FAFAFB;--canvas:#FFFFFF;--elev:#F0F2F5;--hover:#EFEFEF;--sel:#E5E9F0;--line:#E2E5EC;--line2:#CBD2DF;--t1:#111827;--tb:#111827;--t2:#4B5563;--t3:#9CA3AF;--brand:#EA580C;--brandon:#FFFFFF;--mark:#2563EB;--link:#2563EB;--ok:#16A34A;--warn:#D97706;--bad:#DC2626;--ctl:#F0F2F5;--field:#FFFFFF;--okbg:#F0F2F5;--okline:#E2E5EC;--iname:#EA580C}
+.w.s[data-m=dark]{--side:#262626;--list:#222222;--canvas:#1e1e1e;--elev:#262626;--hover:#2c2c2c;--sel:#303030;--line:#333333;--line2:#444444;--t1:#ffffff;--tb:#dddddd;--t2:#aaaaaa;--t3:#8f8f8f;--brand:#fbbf24;--brandon:#1a1a1a;--mark:#0ea5e9;--link:#38bdf8;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--ctl:#333333;--ctlh:#404040;--field:#181818;--okbg:#14391f;--okline:#22c55e;--scrim:rgba(0,0,0,.75);--iname:#FF6B2B;--accfill:#0369a1;--focus:#38bdf8;--bc:#707070}
+.w.s[data-m=light]{--side:#fafafa;--list:#ffffff;--canvas:#f2f2f2;--elev:#fafafa;--hover:#f0f0f0;--sel:#e8e8e8;--line:#d4d4d4;--line2:#bdbdbd;--t1:#111111;--tb:#222222;--t2:#555555;--t3:#666666;--brand:#fbbf24;--brandon:#1a1a1a;--mark:#0284c7;--link:#0369a1;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--ctl:#e6e6e6;--ctlh:#d9d9d9;--field:#ebebeb;--okbg:#dcfce7;--okline:#16a34a;--scrim:rgba(17,17,17,.45);--iname:#EA580C;--accfill:#0369a1;--focus:#0369a1;--bc:#8a8a8a}
+
+/* ───────── Maquettes : base commune ───────── */
+.w{width:1180px;height:720px;position:relative;overflow:hidden;background:var(--canvas);color:var(--tb);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;font-size:13px;line-height:1.3;border:1px solid var(--line2);border-radius:12px}
+.w *{box-sizing:border-box;margin:0;padding:0}
+.w.s{font-size:13.2px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tl{display:flex;gap:8px;flex:none}
+.tl i{width:12px;height:12px;border-radius:50%}
+.tl i:nth-child(1){background:#ff5f57}.tl i:nth-child(2){background:#febc2e}.tl i:nth-child(3){background:#28c840}
+.nm b{color:var(--iname);font-weight:inherit}
+.wt{font-size:15px;font-weight:600;color:var(--t1)}
+.s .wt{font-size:15.4px;font-weight:700;letter-spacing:.025em}
+.sp{flex:1;min-width:0}
+.mono,.k,.n{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.col{min-width:0;min-height:0;display:flex;flex-direction:column;position:relative}
+.a .cols{display:grid;grid-template-columns:210px 340px 1fr;height:100%}
+.a .cols.st{grid-template-columns:210px 1fr}
+.s .cols{display:grid;grid-template-columns:220px 360px 1fr;height:calc(100% - 40px)}
+.s .cols.st{grid-template-columns:220px 1fr}
+.side{background:var(--side);border-right:1px solid var(--line);overflow:hidden}
+.lst{background:var(--list);border-right:1px solid var(--line)}
+.rd{background:var(--canvas)}
+.hd{display:flex;align-items:center;gap:10px;flex:none;border-bottom:1px solid var(--line)}
+.a .hd{height:44px;padding:0 14px}
+.s .hd{height:40px;padding:0 12px}
+.a .side .hd{border-bottom:0;gap:14px}
+.bar{height:40px;display:flex;align-items:center;gap:14px;padding:0 12px;background:var(--elev);border-bottom:1px solid var(--line)}
+.h1{color:var(--t1);font-weight:600;font-size:15px}
+.s .h1{font-size:15.4px;font-weight:700;letter-spacing:.025em}
+.cnt{color:var(--t3);font-size:12px}
+
+/* boutons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 12px;font:inherit;font-weight:500;color:var(--tb);background:var(--ctl);border:0;white-space:nowrap;cursor:default}
+.a .btn{height:30px;border:1px solid var(--line2);border-radius:6px}
+.s .btn{border-radius:4px;color:var(--t1)}
+.btn.sm{height:28px;padding:0 9px}
+.a .btn.p{background:var(--brand);border-color:var(--brand);color:var(--brandon);font-weight:600}
+.s .btn.p{background:var(--brand);color:var(--brandon);font-weight:700}
+.btn .ic{width:15px;height:15px}
+.k{font-size:10.5px;font-weight:500;line-height:1;padding:3px 5px;color:var(--t2);white-space:nowrap}
+.a .k{border:1px solid var(--line2);border-radius:4px}
+.s .k{background:var(--ctlh);border-radius:4px}
+.p .k{background:none;border:1px solid currentColor;color:inherit;opacity:.75}
+.s .btn:not(.p) .k{background:var(--line2)}
+
+/* champs */
+.fld{display:flex;align-items:center;gap:8px;min-width:0;color:var(--t3);background:var(--field);padding:0 10px;height:30px;white-space:nowrap;overflow:hidden}
+.a .fld{border:1px solid var(--line2);border-radius:6px}
+.s .fld{height:36px;padding:0 12px;border-radius:0}
+.s .bar .fld{height:32px}
+.a .fld.f{border-color:var(--mark)}
+.s .fld.f{outline:2px solid var(--focus);outline-offset:2px}
+.fld.in{color:var(--t1);flex:1}
+.fld .ic{width:15px;height:15px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:500;padding:2px 6px;margin-right:6px;color:var(--warn);flex:none}
+.a .chip{border:1px solid var(--line2);border-radius:4px}
+.s .chip{background:var(--ctl);border-radius:4px}
+.chip.ok{color:var(--ok)}
+.chip .ic{width:11px;height:11px}
+.seg{display:flex;flex:none}
+.a .seg{background:var(--elev);border:1px solid var(--line2);border-radius:6px;padding:2px;gap:2px}
+.s .seg{background:var(--field);border-radius:4px}
+.seg b{font-weight:500;color:var(--t2);display:flex;align-items:center;justify-content:center}
+.a .seg b{padding:3px 10px;border-radius:4px;font-size:12px}
+.s .seg b{padding:0 12px;height:28px;border-radius:4px;font-size:12.1px}
+.seg b.on{color:var(--t1)}
+.a .seg b.on{background:var(--sel)}
+.s .seg b.on{background:var(--ctl);color:var(--tb)}
+
+/* barre latérale */
+.nav{padding:8px;display:flex;flex-direction:column;gap:2px;flex:none}
+.cpb{padding:2px 8px 4px}
+.cpb .btn{width:100%;justify-content:flex-start}
+.ni{display:flex;align-items:center;gap:9px;padding:0 10px;color:var(--t2);white-space:nowrap;position:relative}
+.a .ni{height:30px;border-radius:6px}
+.s .ni{height:32px;border-radius:4px;gap:10px}
+.ni.on{background:var(--sel);color:var(--t1)}
+.s .ni.on::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;background:var(--mark)}
+.ni .n{margin-left:auto;font-size:11px;color:var(--t3)}
+.ni.on .n{color:var(--t2)}
+.sec{padding:12px 18px 2px;font-size:11px;color:var(--t3);font-weight:500}
+.sf{margin-top:auto;display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--t3);background:var(--side);position:relative;z-index:1}
+.sf i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.sf .ic{color:var(--t2)}
+.wm{position:absolute;right:-30%;bottom:-8%;width:130%;color:var(--t1);opacity:.05;pointer-events:none}
+
+/* liste */
+.srch{padding:0 12px 10px;flex:none}
+.rows{flex:1;min-height:0;overflow:hidden}
+.row{display:flex;border-bottom:1px solid var(--line);position:relative;padding-right:14px}
+.a .row{height:64px}.s .row{height:62px}
+.row .g{width:22px;flex:none;display:flex;justify-content:center;padding-top:15px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--brand)}
+.s .dot{background:var(--mark)}
+.row .bd{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.l1,.l2,.l3{display:flex;align-items:center;gap:6px;min-width:0}
+.ell{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.snd{color:var(--t2)}
+.row.u .snd{color:var(--t1);font-weight:600}
+.tm{font-size:11px;color:var(--t3);font-weight:500;font-variant-numeric:tabular-nums;flex:none}
+.s .tm{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.sbj{font-size:12.5px;font-weight:500;color:var(--t2)}
+.s .sbj{font-size:13.2px}
+.row.u .sbj{color:var(--tb)}
+.snp{font-size:12px;color:var(--t3)}
+.s .snp{font-size:12.1px}
+.l2 .ic,.l3 .ic{width:13px;height:13px;color:var(--t3)}
+.row.on{background:var(--sel)}
+.row.on .snd{color:var(--t1)}
+.a .row.on::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--mark)}
+
+/* lecteur */
+.act{display:flex;gap:6px}
+.act .btn{padding:0 8px;gap:7px}
+.rbody{padding:22px 28px 0;flex:1;min-height:0;overflow:hidden}
+.subj{font-size:18px;font-weight:700;line-height:1.25;color:var(--t1)}
+.s .subj{font-size:17.6px;letter-spacing:.025em}
+.from{display:flex;align-items:center;gap:10px;margin-top:14px}
+.av{width:32px;height:32px;border-radius:50%;background:var(--sel);color:var(--t1);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex:none}
+.s .av{background:var(--ctl)}
+.fn{font-weight:600;color:var(--t1)}
+.fa{color:var(--t3);font-size:12px;font-weight:400}
+.meta{font-size:12px;color:var(--t3);white-space:nowrap}
+.shield{display:flex;align-items:center;gap:8px;margin-top:16px;padding:8px 12px;font-size:12px}
+.a .shield{background:var(--elev);border:1px solid var(--line);border-radius:6px;color:var(--t2)}
+.a .shield .ic{color:var(--ok)}
+.s .shield{background:var(--okbg);border:1px solid var(--okline);border-radius:4px;color:var(--ok)}
+.shield u{margin-left:auto;text-decoration:none;color:var(--link);font-weight:500;white-space:nowrap}
+.mail{margin-top:16px;font-size:14px;line-height:1.55;color:var(--tb)}
+.s .mail{font-size:15px}
+.mail p{margin-bottom:10px}
+.atts{display:flex;gap:8px;margin:4px 0 18px}
+.att{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;font-size:12px;color:var(--t1)}
+.a .att{border:1px solid var(--line2);border-radius:6px;background:var(--elev)}
+.s .att{background:var(--ctl);border-radius:4px}
+.att small{color:var(--t3);font-size:11px}
+.thr{border-top:1px solid var(--line)}
+.thr div{display:flex;align-items:center;gap:10px;height:46px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--t2)}
+.thr .av{width:24px;height:24px;font-size:10px}
+.thr b{color:var(--t1);font-weight:600;flex:none}
+.rep{flex:none;padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.hint{flex:none;height:30px;border-top:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 16px;font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden}
+.s .hint{background:var(--field)}
+.hint .k{margin-right:5px;padding:2px 4px}
+
+/* retour d'envoi */
+.toast{position:absolute;bottom:14px;display:flex;align-items:center;gap:14px;padding:11px 14px 13px;background:var(--elev);border:1px solid var(--line2);font-size:12.5px;color:var(--t1);width:316px;z-index:5;overflow:hidden}
+.a .toast{left:222px}.s .toast{left:232px}
+.a .toast{border-radius:6px}.s .toast{border-radius:4px}
+.toast .tb{position:absolute;left:0;bottom:0;height:2px;width:70%;background:var(--brand)}
+.toast a{margin-left:auto;color:var(--link);font-weight:600;display:flex;gap:8px;align-items:center}
+
+/* palette ⌘K et rédaction */
+.ov{position:absolute;inset:0;z-index:10}
+.s .ov{background:var(--scrim)}
+.pal{position:absolute;left:50%;top:86px;transform:translateX(-50%);width:620px;background:var(--elev);border:1px solid var(--line2);overflow:hidden}
+.a .pal{border-radius:8px}.s .pal{border-radius:12px;background:var(--list)}
+.pin{display:flex;align-items:center;gap:10px;height:52px;padding:0 18px;border-bottom:1px solid var(--line);font-size:15px;color:var(--t1)}
+.pin .ph{color:var(--t3)}
+.car{width:1.5px;height:18px;background:var(--t1);margin-left:-8px}
+.pg{padding:6px 8px 8px}
+.pgl{font-size:11px;color:var(--t3);padding:10px 10px 4px;font-weight:500}
+.pr{display:flex;align-items:center;gap:11px;height:36px;padding:0 10px;color:var(--tb)}
+.a .pr{border-radius:6px}.s .pr{border-radius:4px}
+.pr.on{background:var(--sel);color:var(--t1)}
+.pr .ic{color:var(--t2)}
+.pr .kk{margin-left:auto;display:flex;gap:4px}
+.ops{display:flex;gap:6px;margin-left:auto}
+.ops .chip{margin:0;color:var(--t2)}
+.pfoot{display:flex;gap:18px;padding:9px 18px;border-top:1px solid var(--line);font-size:11px;color:var(--t3)}
+.s .pfoot{background:var(--field)}
+.pfoot .k{margin-right:5px;padding:2px 4px}
+.cw{position:absolute;left:50%;top:40px;transform:translateX(-50%);width:740px;height:624px;background:var(--canvas);border:1px solid var(--line2);display:flex;flex-direction:column;overflow:hidden}
+.a .cw{border-radius:8px}.s .cw{border-radius:12px;background:var(--list)}
+.chd{height:46px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid var(--line);flex:none}
+.chd .ic{color:var(--t2)}
+.cf{display:flex;align-items:center;gap:14px;padding:0 20px;margin-top:10px}
+.cf label{width:48px;flex:none;color:var(--t2);font-size:12px}
+.cf .fld{flex:1}
+.rc{display:inline-flex;align-items:center;gap:6px;padding:2px 6px 2px 8px;font-size:12px}
+.a .rc{background:var(--sel);color:var(--t1);border-radius:4px}
+.s .rc{background:var(--ctl);color:var(--link);border-radius:4px}
+.rc .ic{width:11px;height:11px}
+.cb{flex:1;padding:16px 20px;font-size:14px;line-height:1.6;color:var(--tb);overflow:hidden}
+.s .cb{font-size:15px}
+.cb p{margin-bottom:10px}
+.cb .sig{color:var(--t3);font-size:12.5px;margin-top:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.cft{flex:none;display:flex;align-items:center;gap:8px;padding:12px 20px;border-top:1px solid var(--line)}
+.cft small{color:var(--t3);font-size:11.5px}
+
+/* réglages */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:24px 28px;align-items:start}
+.cx{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card.wide{grid-column:1/-1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+.card{background:var(--list);border:1px solid var(--line);border-radius:8px}
+.a .card{padding:16px 18px}
+.s .card{padding:24px}
+.ct{color:var(--t1);font-weight:600;font-size:13px}
+.s .ct{font-size:15.4px;font-weight:700;letter-spacing:.025em}
+.csub{font-size:12px;color:var(--t3);margin-top:2px}
+.s .csub{color:var(--link);font-size:12.1px;margin-top:4px}
+.fr{display:flex;align-items:center;gap:12px;margin-top:12px}
+.s .fr{margin-top:14px}
+.lb{width:98px;flex:none;color:var(--t2);font-size:12px}
+.fld.pt{flex:0 0 72px}
+.sr{display:flex;align-items:center;gap:12px;margin-top:12px}
+.s .sr{margin-top:14px}
+.sr .tt{color:var(--t1)}
+.sr .td{font-size:12px;color:var(--t3);margin-top:1px}
+.sw{margin-left:auto;width:32px;height:18px;border-radius:9px;background:var(--line2);position:relative;flex:none}
+.sw.on{background:var(--brand)}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff}
+.sw.on::after{left:16px}
+.chk{width:16px;height:16px;border:1.5px solid var(--bc);border-radius:3px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff}
+.chk.on{background:var(--accfill);border-color:var(--accfill)}
+.chk .ic{width:12px;height:12px;stroke-width:3}
+.stat{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ok)}
+.stat i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>MAiLS <span>— Comparatif de design : A · AppTheme  ou  B · Socle</span></h1>
+  <div class="ctl">
+    <div class="grp"><label>Écran</label><div class="sg" id="g-screen"></div></div>
+    <div class="grp"><label>Thème</label><div class="sg" id="g-mode"></div></div>
+    <div class="grp"><label>Vue</label><div class="sg" id="g-view"></div></div>
+    <div class="grp" id="g-which-wrap"><label>Afficher</label><div class="sg" id="g-which"></div></div>
+    <div class="keys"><kbd>1</kbd> AppTheme · <kbd>2</kbd> Socle · <kbd>Espace</kbd> basculer · <kbd>T</kbd> thème</div>
+  </div>
+</div>
+
+<div class="stage" id="stage"></div>
+
+<div class="doc">
+  <h3>Différences mesurées, ligne par ligne</h3>
+  <table class="cmpt">
+    <tr><th></th><th>A · AppTheme (docs/DESIGN_SYSTEM.md)</th><th>B · Socle (standard)</th></tr>
+    <tr><td>Origine</td><td>Spécifié pour MAiLS seul ; <code>Theme.swift</code> existe déjà (couleurs adaptatives, versions <code>NSColor</code> pour la <code>NSTableView</code>).</td><td>Design system commun à tes applis (mORTEX, sKYCRASH…). <code>Socle.swift</code> est généré et resynchronisé par <code>sync_apps.sh</code> : les évolutions arrivent seules.</td></tr>
+    <tr><td>Fonds</td><td>Trois niveaux, barre latérale la plus sombre (#121316 → #18191D → #1E2025), légère teinte bleutée.</td><td>Neutres purs, panneaux plus clairs que le fond (#1E1E1E / #222 / #262626) ; filets de 1 px.</td></tr>
+    <tr><td>Couleurs</td><td>Orange #FF6B2B = marque (Rédiger, non lus, interrupteurs). Bleu #3B82F6 réservé à la sélection.</td><td>Bleu #0EA5E9 = le flux (sélection, non lus, liens). Ambre #FBBF24 = <b>un seul</b> appel par écran (Rédiger, Envoyer, Enregistrer).</td></tr>
+    <tr><td>Structure</td><td>Barre latérale pleine hauteur, barre d'outils de 44 px par colonne. Colonnes 210 / 340 / fluide, ligne de 64 px.</td><td>Barre d'en-tête pleine largeur de 40 px, puis colonnes 220 / 360 / fluide, ligne de 62 px. Filigrane de l'icône à 5 % dans la barre latérale.</td></tr>
+    <tr><td>Rayons</td><td>6 px (contrôles), 4 px (badges).</td><td>4 px partout ; champs à angles droits (0) ; dialogues 12 px.</td></tr>
+    <tr><td>Champs</td><td>Fond surélevé + filet 1 px ; focus : filet bleu.</td><td>Fond « creux », sans contour ; focus : anneau de 2 px décalé.</td></tr>
+    <tr><td>Boutons</td><td>Remplis avec filet 1 px, casse de phrase.</td><td>Aplats sans contour ; capitales réservées à RETOUR / CONTINUER.</td></tr>
+    <tr><td>Texte</td><td>13 / 12,5 / 12 / 11 px ; corps de mail 14 px.</td><td>12 px × 1,1 = 13,2 px ; corps de mail en style lecture 15 px.</td></tr>
+    <tr><td>Palette ⌘K</td><td>Pas de voile (règle « zéro transparence ») : elle se détache par son filet.</td><td>Voile <code>scrim</code> (75 % sombre) derrière : plus lisible, mais c'est une transparence que le CLAUDE.md du projet interdit.</td></tr>
+    <tr><td>Contraste</td><td class="bad">Texte discret <code>textMuted</code> : 3,6:1 en sombre, <b>2,4:1 en clair</b> ; blanc sur orange clair 3,6:1. Sous le 4,5:1 que tu exiges ailleurs (horodatages, extraits, méta).</td><td class="good">Tous les couples mesurés ≥ 4,9:1 (texte discret 4,9 en sombre, 5,1 à 5,7 en clair ; texte sur ambre 10,4:1).</td></tr>
+    <tr><td>Nom « MAiLS »</td><td>Le « i » orange : 5,9:1 en sombre, 3,6:1 en clair.</td><td>Le « i » orange : 5,9:1 en sombre, 3,2:1 en clair (seuil de 3:1 tenu).</td></tr>
+  </table>
+
+  <h3>Ce qui changerait selon ton choix</h3>
+  <div class="cols2">
+    <div class="box"><h4>Si A · AppTheme</h4>
+      <ul>
+        <li>Aucun changement de CLAUDE.md ni de <code>Theme.swift</code>.</li>
+        <li>Je corrigerais les deux contrastes : <code>textMuted</code> clair → #6B7280 et texte sur orange clair → orange foncé #C2410C.</li>
+        <li>MAiLS devient la seule appli au design propre : à maintenir à la main.</li>
+      </ul></div>
+    <div class="box"><h4>Si B · Socle</h4>
+      <ul>
+        <li>Je remplace dans CLAUDE.md « tout vient de <code>AppTheme</code> » par « tout vient de <code>Socle</code> » et je retire le voile du ⌘K (fond plein).</li>
+        <li><code>Theme.swift</code> devient un alias de <code>Socle.swift</code> ; la <code>NSTableView</code> reçoit des <code>NSColor</code> convertis.</li>
+        <li>Même langage que tes autres applis, mises à jour de design automatiques.</li>
+      </ul></div>
+  </div>
+
+  <h3>À savoir</h3>
+  <ul>
+    <li>Ce que les docs ne précisent pas côté AppTheme est mon interprétation : point non lu orange, barre bleue de sélection, boutons à filet, interrupteurs. Socle, lui, est appliqué à la lettre (README et <code>tokens.css</code>).</li>
+    <li>La couleur du « i » de MAiLS est provisoire (orange #FF6B2B) en attendant le logo.</li>
+    <li>Socle a une seconde famille, « Design Apple Stephan » (verre, SF Symbols). Elle n'est pas montrée ici : le verre contredit la règle « 100 % Flat » du projet.</li>
+    <li>Contenu fictif : aucun message ni compte réel.</li>
+  </ul>
+</div>
+
+<script>
+const IC={
+inbox:'<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+archive:'<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+trash:'<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+reply:'<polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>',
+pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+clip:'<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+gear:'<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+mailx:'<path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h9"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="m17 17 5 5"/><path d="m22 17-5 5"/>',
+flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
+at:'<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>',
+lock:'<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+chev:'<path d="m6 9 6 6 6-6"/>',
+x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',
+shieldset:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+palette:'<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+keyb:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/><path d="M8 12h.001"/><path d="M12 12h.001"/><path d="M16 12h.001"/><path d="M7 16h10"/>',
+pensig:'<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>'
+};
+const ic=n=>`<svg class="ic" viewBox="0 0 24 24">${IC[n]}</svg>`;
+const NM='MA<b>i</b>LS';
+const k=t=>`<span class="k">${t}</span>`;
+
+const MSG=[
+ {u:1,n:'Camille Laurent',t:'09:42',s:'Maquettes atelier : version 3',p:'Voici les fichiers mis à jour, dis-moi si le cadrage te convient avant jeudi.',a:1,sel:1},
+ {u:1,n:'GitHub',t:'09:15',s:'[MAiLS] Build réussi sur main',p:'Tous les tests sont passés (42 sur 42). Durée : 2 min 14 s.'},
+ {u:0,n:'Léa Moreau',t:'08:20',s:'Re : Planning de la semaine',p:'Parfait pour jeudi, je réserve la salle et j’envoie l’invitation.'},
+ {u:1,n:'Atelier Nord',t:'Hier',s:'Les nouveautés de novembre',p:'Quatre nouveaux modèles et le calendrier des ateliers.',chip:'Newsletter'},
+ {u:0,n:'Julien Petit',t:'Hier',s:'Question sur l’export CSV',p:'Tu as pu regarder le format des dates dans l’export ?',chip:'Suivi 3 j'},
+ {u:0,n:'Infomaniak',t:'Mar.',s:'Votre facture de novembre est disponible',p:'Montant : 12,00 CHF. Prélèvement le 28 novembre.',a:1},
+ {u:0,n:'Thomas Bernard',t:'Mar.',s:'Devis hébergement',p:'Voici le devis pour la formule 3 To, valable jusqu’au 30.'},
+ {u:0,n:'Apple',t:'Lun.',s:'Votre reçu iCloud+',p:'Merci pour votre abonnement iCloud+ 200 Go.'},
+ {u:0,n:'Design Weekly',t:'Lun.',s:'Dix interfaces à suivre ce mois-ci',p:'Notre sélection de la semaine, par Inès Garnier.',chip:'Newsletter'},
+ {u:0,n:'Sophie Martin',t:'12 nov.',s:'Retour sur la réunion de jeudi',p:'Merci à tous pour la participation, voici le compte rendu.'},
+ {u:0,n:'GitHub',t:'12 nov.',s:'[MAiLS] Nouvelle version disponible',p:'La version 0.4.0 est publiée.'}
+];
+const NAV=[['inbox','Boîte unifiée',12,1],['flag','Suivis',3],['clock','Snoozés',2],['file','Brouillons',1],['send','Envoyés'],['archive','Archive'],['trash','Corbeille']];
+const ACC=[['iCloud',5],['Gmail',7],['Infomaniak',0]];
+const navItem=(i,n,c,on)=>`<div class="ni${on?' on':''}">${i?ic(i):''}<span>${n}</span>${c!==undefined&&c!==''?`<span class="n">${c}</span>`:''}</div>`;
+const seg=(a,i)=>`<div class="seg">${a.map((x,j)=>`<b${j===i?' class="on"':''}>${x}</b>`).join('')}</div>`;
+const wm=`<svg class="wm" viewBox="0 0 120 90"><rect x="4" y="4" width="112" height="82" rx="10" fill="currentColor"/><path d="M4 20 60 58 116 20" stroke="var(--side)" stroke-width="7" fill="none"/></svg>`;
+
+function sideBar(a,settings){
+  if(settings){
+    return `<aside class="col side">
+      ${a?`<div class="hd"><span class="tl"><i></i><i></i><i></i></span><b class="nm wt">${NM}</b></div>`:''}
+      <div class="sec">Réglages</div>
+      <nav class="nav">${navItem('at','Comptes','',1)}${navItem('gear','Général')}${navItem('palette','Apparence')}${navItem('shieldset','Confidentialité')}${navItem('keyb','Raccourcis')}${navItem('pensig','Signatures')}</nav>
+      <div class="sec">Comptes</div>
+      <nav class="nav">${navItem('',`iCloud`,'',1).replace('ni on','ni on')}${navItem('','Gmail')}${navItem('','Infomaniak')}</nav>
+      <div style="padding:6px 8px"><button class="btn sm" style="width:100%;justify-content:flex-start">${ic('plus')}Ajouter un compte…</button></div>
+      ${a?'':wm}
+      <div class="sf"><span class="sp"></span>${ic('gear')}</div>
+    </aside>`;
+  }
+  return `<aside class="col side">
+    ${a?`<div class="hd"><span class="tl"><i></i><i></i><i></i></span><b class="nm wt">${NM}</b></div>
+    <div class="cpb"><button class="btn p">${ic('pen')}Rédiger<span class="sp"></span>${k('C')}</button></div>`:''}
+    <nav class="nav">${NAV.map(x=>navItem(...x)).join('')}</nav>
+    <div class="sec">Comptes</div>
+    <nav class="nav">${ACC.map(x=>navItem('at',x[0],x[1]||'')).join('')}</nav>
+    ${a?'':wm}
+    <div class="sf"><i></i><span>Synchronisé · IDLE actif</span><span class="sp"></span>${ic('gear')}</div>
+  </aside>`;
+}
+function row(m,a){
+  return `<div class="row${m.u?' u':''}${m.sel?' on':''}"><div class="g">${m.u?'<i class="dot"></i>':''}</div><div class="bd">
+    <div class="l1"><span class="ell snd">${m.n}</span><span class="tm">${m.t}</span></div>
+    <div class="l2"><span class="ell sbj">${m.s}</span>${m.a?ic('clip'):''}</div>
+    <div class="l3">${m.chip?`<span class="chip">${m.chip}</span>`:''}<span class="ell snp">${m.p}</span></div></div></div>`;
+}
+function listCol(a){
+  return `<section class="col lst"><div class="hd"><span class="h1">Boîte unifiée</span><span class="cnt">12 non lus</span><i class="sp"></i>${seg(['Tout','Non lus'],0)}</div>
+  ${a?`<div class="srch"><div class="fld">${ic('search')}<span>Rechercher… from: has:attachment</span><i class="sp"></i>${k('/')}</div></div>`:''}
+  <div class="rows">${MSG.map(m=>row(m,a)).join('')}</div></section>`;
+}
+function reader(a){
+  const ab=(i,key,extra='')=>`<button class="btn sm">${ic(i)}${extra}${k(key)}</button>`;
+  return `<section class="col rd"><div class="hd"><span class="cnt">Message 1 sur 12</span>${k('J')}${k('K')}<i class="sp"></i>
+    <div class="act">${ab('archive','E')}${ab('trash','#')}${ab('clock','H')}${ab('mailx','U')}${ab('reply','R','Répondre')}</div></div>
+  <div class="rbody">
+    <div class="subj">Maquettes atelier : version 3</div>
+    <div class="from"><span class="av">CL</span><div><div class="fn">Camille Laurent <span class="fa">&lt;camille@atelier-nord.example&gt;</span></div><div class="meta">à moi · iCloud</div></div><i class="sp"></i><span class="meta">Aujourd’hui, 09:42</span></div>
+    <div class="shield">${ic('shield')}<span>Bouclier actif · 2 pisteurs bloqués · images distantes bloquées</span><u>Afficher les images</u></div>
+    <div class="mail"><p>Bonjour,</p>
+      <p>Voici les maquettes de l’atelier mises à jour après notre échange de lundi : le plan de la salle, la signalétique et la palette de couleurs retenue.</p>
+      <p>Dis-moi si le cadrage te convient avant jeudi, je finalise les fichiers d’impression dès que tu as validé.</p>
+      <p>Bonne journée,<br>Camille</p></div>
+    <div class="atts"><div class="att">${ic('file')}<span>maquettes-atelier-v3.pdf</span><small>2,4 Mo</small></div><div class="att">${ic('file')}<span>palette.png</span><small>380 Ko</small></div></div>
+    <div class="thr"><div><span class="av">MO</span><b>Vous</b><span class="ell">Parfait, j’attends la version 3 pour valider le tout.</span><span class="meta">Hier</span></div><div><span class="av">CL</span><b>Camille Laurent</b><span class="ell">Je t’envoie les plans mis à jour demain matin.</span><span class="meta">Lun.</span></div><div><span class="av">MO</span><b>Vous</b><span class="ell">Peux-tu m’envoyer le plan de la salle avant la réunion ?</span><span class="meta">12 nov.</span></div></div>
+  </div>
+  <div class="rep"><div class="fld">${ic('reply')}<span>Répondre à Camille…</span><i class="sp"></i>${k('R')}</div></div>
+  <div class="hint"><span>${k('E')}Archiver</span><span>${k('#')}Corbeille</span><span>${k('H')}Snooze</span><span>${k('U')}Se désabonner</span><span>${k('⌘K')}Palette</span><span>${k('/')}Rechercher</span></div></section>`;
+}
+function toast(){ return `<div class="toast"><span>Envoi à Camille Laurent dans 7 s…</span><a>Annuler ${k('Z')}</a><i class="tb"></i></div>`; }
+function barS(settings){
+  return `<header class="bar"><span class="tl"><i></i><i></i><i></i></span><b class="nm wt">${settings?'Réglages':NM}</b>
+  ${settings?'':`<div class="fld" style="flex:0 0 440px;margin-left:24px">${ic('search')}<span>Rechercher dans tous les comptes — from: to: has:attachment</span></div><i class="sp"></i><button class="btn p">${ic('pen')}Rédiger${k('C')}</button>`}</header>`;
+}
+function palette(){
+  const r=(i,t,keys,on)=>`<div class="pr${on?' on':''}">${ic(i)}<span>${t}</span><span class="kk">${keys.map(k).join('')}</span></div>`;
+  return `<div class="ov"><div class="pal"><div class="pin">${ic('search')}<span>sn</span><i class="car"></i><span class="ph">Tapez une commande ou recherchez un message…</span><i class="sp"></i>${k('esc')}</div>
+  <div class="pg"><div class="pgl">Actions sur le message</div>
+  ${r('clock','Reporter jusqu’à demain, 9:00',['H'],1)}${r('archive','Archiver',['E'])}${r('mailx','Se désabonner de Atelier Nord',['U'])}${r('flag','Me rappeler sans réponse sous 48 h',['F'])}${r('reply','Répondre',['R'])}
+  <div class="pgl">Navigation</div>
+  ${r('inbox','Aller à la boîte unifiée',['G','I'])}${r('send','Aller aux messages envoyés',['G','S'])}${r('gear','Réglages des comptes',['⌘',','])}
+  <div class="pgl">Recherche</div>
+  <div class="pr">${ic('search')}<span>Rechercher dans tous les comptes</span><span class="ops"><span class="chip">from:</span><span class="chip">to:</span><span class="chip">has:attachment</span><span class="chip">is:unread</span></span></div></div>
+  <div class="pfoot"><span>${k('↑')}${k('↓')} Naviguer</span><span>${k('↵')} Exécuter</span><span>${k('esc')} Fermer</span></div></div></div>`;
+}
+function compose(){
+  return `<div class="ov"><div class="cw"><div class="chd"><b class="h1" style="font-size:14px">Nouveau message</b><i class="sp"></i><span class="cnt">Brouillon enregistré</span>${ic('x')}</div>
+  <div class="cf"><label>De</label><div class="fld in"><span>demo@icloud.example</span><i class="sp"></i>${ic('chev')}</div></div>
+  <div class="cf"><label>À</label><div class="fld in"><span class="rc">Camille Laurent${ic('x')}</span><span class="rc">Léa Moreau${ic('x')}</span></div></div>
+  <div class="cf"><label>Cc</label><div class="fld in f"><span style="color:var(--t3)">Ajouter un destinataire</span></div></div>
+  <div class="cf"><label>Objet</label><div class="fld in"><span>Re : Maquettes atelier : version 3</span></div></div>
+  <div class="cb"><p>Bonjour Camille,</p><p>Merci pour la version 3, le cadrage me convient. Je valide le plan de la salle et la palette ; il reste à confirmer la signalétique de l’entrée.</p><p>On se cale jeudi à 14 h pour les fichiers d’impression ?</p><p>Bien à toi,<br>Morgane</p><div class="sig">-- <br>Morgane · Atelier&nbsp;Nord<br>**Disponible** du lundi au jeudi</div></div>
+  <div class="cft"><button class="btn p">${ic('send')}Envoyer${k('⌘↵')}</button><button class="btn">${ic('clip')}Joindre</button><button class="btn">${ic('clock')}Programmer</button><i class="sp"></i><small>Annulation d’envoi : 10 s</small></div></div></div>`;
+}
+function settings(a){
+  const fr=(l,body)=>`<div class="fr"><span class="lb">${l}</span>${body}</div>`;
+  const f=(v,cls='')=>`<div class="fld in ${cls}">${v}</div>`;
+  const tog=(on,t,d)=>a?`<div class="sr"><div><div class="tt">${t}</div><div class="td">${d}</div></div><i class="sw${on?' on':''}"></i></div>`
+    :`<div class="sr"><i class="chk${on?' on':''}">${on?ic('check'):''}</i><div><div class="tt">${t}</div><div class="td">${d}</div></div></div>`;
+  const card=(t,sub,body)=>`<div class="card"><div class="ct">${t}</div><div class="csub">${sub}</div>${body}</div>`;
+  const hdr=`<div class="hd"><span class="h1">iCloud</span><span class="stat"><i></i>Synchronisé · IDLE actif</span><i class="sp"></i><button class="btn sm">Tester la connexion</button><button class="btn sm p">Enregistrer</button></div>`;
+  return `<div class="cols st">${sideBar(a,true)}<section class="col rd">${hdr}<div class="grid">
+   <div class="cx">
+    ${card('Compte','Identité et authentification.',
+      fr('Nom affiché',f('Morgane Atelier','f'))+fr('Adresse',f('demo@icloud.example'))+fr('Mot de passe',f(`<span>••••••••••••••••</span><i class="sp"></i><span class="chip ok" style="margin:0">${ic('lock')}Trousseau</span>`))+
+      `<div class="csub" style="margin-top:10px">Mot de passe d’application Apple, enregistré dans le Trousseau macOS.</div>`)}
+    ${card('Confidentialité','Ce qui se charge à l’ouverture d’un message.',
+      tog(1,'Bloquer les images distantes','Elles s’affichent seulement sur demande.')+tog(1,'Bouclier anti-pisteurs','Retire les pixels de suivi 1×1.')+tog(1,'Désabonnement en 1 clic','Touche U quand l’en-tête RFC 8058 est présent.')+tog(0,'Accusés de lecture','Ne jamais en envoyer.'))}
+   </div>
+   <div class="cx">
+    ${card('Serveurs','Connexion chiffrée uniquement.',
+      fr('IMAP',f('imap.mail.me.com')+f('993','pt'))+fr('Sécurité',seg(['SSL/TLS','STARTTLS'],0))+fr('SMTP',f('smtp.mail.me.com')+f('587','pt'))+fr('Sécurité',seg(['SSL/TLS','STARTTLS'],1)))}
+    ${card('Envoi et suivi','Annulation, signature et rappels.',
+      fr('Annulation',seg(['5 s','10 s','20 s','30 s'],1))+fr('Alias',f(`<span>demo@icloud.example</span><i class="sp"></i>${ic('chev')}`))+fr('Signature',f(`<span>Markdown</span><i class="sp"></i>${ic('chev')}`))+fr('Sans réponse',seg(['48 h','72 h','Jamais'],0)))}
+   </div></div></section></div>`;
+}
+function win(d){
+  const a=d==='a', sc=state.screen, st=sc==='settings';
+  const body=st?settings(a):`<div class="cols">${sideBar(a)}${listCol(a)}${reader(a)}</div>`;
+  return `<div class="w ${d}" data-m="${state.mode}">${a?'':barS(st)}${body}${sc==='inbox'?toast():''}${sc==='palette'?palette():''}${sc==='compose'?compose():''}</div>`;
+}
+
+const state={screen:'inbox',mode:'dark',view:innerWidth>=1560?'side':'switch',which:'a'};
+const SCREENS=[['inbox','Boîte de réception'],['palette','Palette ⌘K'],['compose','Rédaction'],['settings','Comptes']];
+const D={a:['A','AppTheme','Flat façon Linear / Superhuman · accent orange · rayons 6 px · colonnes 210 / 340 / fluide'],s:['B','Socle','Outils denses · bleu = flux, ambre = un seul appel · rayons 4 px, champs droits · en-tête 40 px · filigrane']};
+function group(id,items,cur,set){
+  const el=document.getElementById(id);
+  el.innerHTML=items.map(([v,l])=>`<button data-v="${v}" class="${v===cur?'on':''}">${l}</button>`).join('');
+  el.onclick=e=>{const v=e.target.dataset&&e.target.dataset.v; if(v){set(v);render();}};
+}
+function render(){
+  group('g-screen',SCREENS,state.screen,v=>state.screen=v);
+  group('g-mode',[['dark','Sombre'],['light','Clair']],state.mode,v=>state.mode=v);
+  group('g-view',[['side','Côte à côte'],['stack','Superposé'],['switch','Bascule']],state.view,v=>state.view=v);
+  group('g-which',[['a','A · AppTheme'],['s','B · Socle']],state.which,v=>state.which=v);
+  document.getElementById('g-which-wrap').style.display=state.view==='switch'?'flex':'none';
+  const st=document.getElementById('stage'); st.className='stage '+state.view;
+  st.innerHTML=['a','s'].map(d=>`<section class="slot${state.view==='switch'&&state.which!==d?' off':''}"><h2><i>${D[d][0]}</i>${D[d][1]}</h2><p>${D[d][2]}</p><div class="frame">${win(d)}</div></section>`).join('');
+  fit();
+}
+function fit(){
+  const st=document.getElementById('stage'), W=st.clientWidth;
+  const avail=state.view==='side'?(W-24)/2:W, sc=Math.min(1,avail/1180);
+  document.querySelectorAll('.frame').forEach(f=>{f.style.width=1180*sc+'px';f.style.height=720*sc+'px';f.firstElementChild.style.transform=`scale(${sc})`;});
+}
+addEventListener('resize',fit);
+addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==='1'){state.which='a';}else if(e.key==='2'){state.which='s';}
+  else if(e.key===' '){e.preventDefault();state.which=state.which==='a'?'s':'a';}
+  else if(e.key==='t'||e.key==='T'){state.mode=state.mode==='dark'?'light':'dark';}
+  else return;
+  render();
+});
+render();
+</script>
+</body>
+</html>

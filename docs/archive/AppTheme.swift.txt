@@ -1,0 +1,84 @@
+import SwiftUI
+import AppKit
+
+public enum AppTheme {
+    public enum Colors {
+        public static let bgSidebar = adaptiveColor(light: 0xF3F4F6, dark: 0x121316)
+        public static let bgList = adaptiveColor(light: 0xFAFAFB, dark: 0x18191D)
+        public static let bgCanvas = adaptiveColor(light: 0xFFFFFF, dark: 0x1E2025)
+        public static let bgSurfaceElevated = adaptiveColor(light: 0xF0F2F5, dark: 0x262930)
+        public static let bgHover = adaptiveColor(light: 0xEFEFEF, dark: 0x23262E)
+        public static let bgSelected = adaptiveColor(light: 0xE5E9F0, dark: 0x2B303B)
+
+        public static let borderSubtle = adaptiveColor(light: 0xE2E5EC, dark: 0x2A2D35)
+        public static let borderStrong = adaptiveColor(light: 0xCBD2DF, dark: 0x3B404C)
+
+        public static let textPrimary = adaptiveColor(light: 0x111827, dark: 0xF2F4F8)
+        public static let textSecondary = adaptiveColor(light: 0x4B5563, dark: 0x9CA3AF)
+        public static let textMuted = adaptiveColor(light: 0x9CA3AF, dark: 0x6B7280)
+
+        public static let accentPrimary = adaptiveColor(light: 0xEA580C, dark: 0xFF6B2B)
+        public static let accentPrimaryHover = adaptiveColor(light: 0xC2410C, dark: 0xE85A1C)
+        public static let accentSelection = adaptiveColor(light: 0x2563EB, dark: 0x3B82F6)
+
+        public static let statusSuccess = adaptiveColor(light: 0x16A34A, dark: 0x22C55E)
+        public static let statusWarning = adaptiveColor(light: 0xD97706, dark: 0xF59E0B)
+        public static let statusDanger = adaptiveColor(light: 0xDC2626, dark: 0xEF4444)
+
+        public static let nsBgList = adaptiveNSColor(light: 0xFAFAFB, dark: 0x18191D)
+        public static let nsBgHover = adaptiveNSColor(light: 0xEFEFEF, dark: 0x23262E)
+        public static let nsBgSelected = adaptiveNSColor(light: 0xE5E9F0, dark: 0x2B303B)
+        public static let nsBorderSubtle = adaptiveNSColor(light: 0xE2E5EC, dark: 0x2A2D35)
+        public static let nsTextPrimary = adaptiveNSColor(light: 0x111827, dark: 0xF2F4F8)
+        public static let nsTextSecondary = adaptiveNSColor(light: 0x4B5563, dark: 0x9CA3AF)
+        public static let nsTextMuted = adaptiveNSColor(light: 0x9CA3AF, dark: 0x6B7280)
+        public static let nsAccentPrimary = adaptiveNSColor(light: 0xEA580C, dark: 0xFF6B2B)
+
+        private static func adaptiveColor(light: UInt32, dark: UInt32) -> Color {
+            Color(nsColor: adaptiveNSColor(light: light, dark: dark))
+        }
+
+        private static func adaptiveNSColor(light: UInt32, dark: UInt32) -> NSColor {
+            NSColor(name: nil) { appearance in
+                let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                return nsColor(from: isDark ? dark : light)
+            }
+        }
+
+        private static func nsColor(from hex: UInt32) -> NSColor {
+            let r = CGFloat((hex >> 16) & 0xFF) / 255.0
+            let g = CGFloat((hex >> 8) & 0xFF) / 255.0
+            let b = CGFloat(hex & 0xFF) / 255.0
+            return NSColor(srgbRed: r, green: g, blue: b, alpha: 1.0)
+        }
+    }
+
+    public enum Typography {
+        public static let windowTitle = Font.system(size: 15, weight: .semibold)
+        public static let emailSubjectHeader = Font.system(size: 18, weight: .bold)
+        public static let senderUnread = Font.system(size: 13, weight: .semibold)
+        public static let senderRead = Font.system(size: 13, weight: .regular)
+        public static let listSubject = Font.system(size: 12.5, weight: .medium)
+        public static let listSnippet = Font.system(size: 12, weight: .regular)
+        public static let listTimestamp = Font.system(size: 11, weight: .medium).monospacedDigit()
+        public static let shortcutBadge = Font.system(size: 10.5, weight: .medium, design: .monospaced)
+        public static let bodyPlain = Font.system(size: 14, weight: .regular)
+    }
+
+    public enum Metrics {
+        public static let sidebarWidthDefault: CGFloat = 210
+        public static let sidebarWidthMin: CGFloat = 180
+        public static let sidebarWidthMax: CGFloat = 260
+        public static let listWidthDefault: CGFloat = 340
+        public static let listWidthMin: CGFloat = 300
+        public static let listWidthMax: CGFloat = 450
+        public static let detailWidthMin: CGFloat = 480
+        public static let toolbarHeight: CGFloat = 44
+        public static let messageRowHeight: CGFloat = 64
+        public static let sidebarRowHeight: CGFloat = 30
+        public static let radiusControl: CGFloat = 6
+        public static let radiusBadge: CGFloat = 4
+        public static let unreadDotSize: CGFloat = 7
+        public static let strokeWidth: CGFloat = 1
+    }
+}

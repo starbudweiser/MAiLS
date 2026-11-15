@@ -1,0 +1,13 @@
+.DS_Store
+/.build
+/Packages
+xcuserdata/
+DerivedData/
+.swiftpm/
+*.xcodeproj
+!*.xcodeproj/project.pbxproj
+.dovecot/
+build/
+__pycache__/
+*.pyc
+PASSATION_*.md
