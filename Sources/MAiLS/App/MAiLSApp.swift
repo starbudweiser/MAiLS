@@ -23,6 +23,7 @@ struct MAiLSApp: App {
             RootView().environment(model)
         }
         .defaultSize(width: 1180, height: 760)
+        .windowResizability(.contentMinSize)  // la taille choisie par l'utilisateur ne change jamais d'elle-même
         .windowStyle(.hiddenTitleBar)
         .commands {
             // Dans les menus, le nom reste en texte normal (règle Socle).
@@ -31,6 +32,7 @@ struct MAiLSApp: App {
             }
             CommandGroup(after: .textEditing) {
                 Button(L("menu.search")) { model.focusSearch() }.keyboardShortcut("f")
+                Button(L("menu.jump")) { model.focusJump() }.keyboardShortcut("j")
             }
             CommandMenu(L("menu.account")) {
                 Button(L("menu.refresh")) { model.refresh() }.keyboardShortcut("r")

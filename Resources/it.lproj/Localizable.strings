@@ -62,3 +62,17 @@
 "about.disclaimer" = "MAiLS legge la tua posta senza mai modificarla.";
 "about.credit" = "Fatto con Claude Code.";
 "date.yesterday" = "Ieri";
+
+"sidebar.jump" = "Vai a una cartella…";
+"sidebar.jump.help" = "Vai a una cartella (⌘J)";
+"sidebar.pinned" = "Fissate";
+"sidebar.folders" = "Cartelle";
+"sidebar.hideEmpty" = "Nascondi le cartelle vuote";
+"sidebar.showEmpty" = "Mostra le cartelle vuote";
+"sidebar.pin" = "Fissa";
+"sidebar.unpin" = "Rimuovi dai fissati";
+"sidebar.collapseAll" = "Comprimi tutto";
+"sidebar.noResults" = "Nessuna cartella corrisponde.";
+"sidebar.footer" = "%@ · %d cartelle";
+"sidebar.unread" = "%@, %d non lette";
+"menu.jump" = "Vai a una cartella";

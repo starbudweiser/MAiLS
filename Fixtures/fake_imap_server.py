@@ -209,7 +209,7 @@ def internal_date(uid):
 
 
 class Server:
-    def __init__(self, inbox_count, extra_folders=False):
+    def __init__(self, inbox_count, extra_folders=False, tree=False):
         self.folders = {
             "INBOX": Folder("INBOX", inbox_count),
             "Sent": Folder("Sent", 120, r"\Sent"),
@@ -222,6 +222,40 @@ class Server:
             self.folders["Factures"] = Folder("Factures", 30)
             self.folders["&AMk-t&AOk-"] = Folder("&AMk-t&AOk-", 12)
             self.folders["Junk"] = Folder("Junk", 5, r"\Junk")
+        if tree:
+            # Gros arbre à la manière d'un vrai compte (4 racines, jusqu'à 6 niveaux, des dossiers vides).
+            spec = {
+                "ADMINISTRATIONS": {
+                    "APPARTEMENT": ["CORNICHE FLEURIE", "DOMAINE DE LA VALLEE", "PARIS"],
+                    "BANQUE": ["BUYSTER", "CETELEM", "COFIDIS", "FNAC", "LCL", "OBVY", {"ONEY": ["iPhone 17"]},
+                               {"PAYPAL": ["_SERVICE PAYPAL", "1&-1"]}],
+                    "CAF": [], "EDF": [], "IMPOTS": [], "MAIF": [], "SANTE": [],
+                    "VEHICULE": {"JEEP AVENGER": {"LITIGE STELLANTIS": ["CUSTOMER SERVICES", "MAIF", "MEDIATION"]}},
+                },
+                "EMPLOI": {"CANDIDATURES": [], "FRANCE TRAVAIL": [], "INTERIM": [], "FORMATION": []},
+                "PERSONNEL": {"ABONNEMENTS": [], "ACHATS": [], "FAMILLE": [], "VOYAGES": ["ITALIE", "ESPAGNE"]},
+                "PROFESSIONNEL": {"CLIENTS": ["ARCHIVES"], "TOOLS": [], "TUTORIALS": []},
+            }
+            counter = [0]
+
+            def add(path):
+                counter[0] += 1
+                n = counter[0]
+                # Un dossier sur trois est vide ; les autres ont quelques messages.
+                self.folders[path] = Folder(path, 0 if n % 3 == 0 else (n % 7) + 1)
+
+            def walk(prefix, node):
+                if isinstance(node, dict):
+                    for name, sub in node.items():
+                        add(prefix + name)
+                        walk(prefix + name + "/", sub)
+                else:
+                    for item in node:
+                        if isinstance(item, dict):
+                            walk(prefix, item)
+                        else:
+                            add(prefix + item)
+            walk("", spec)
         self.idlers = set()
 
     def notify_exists(self, folder):
@@ -238,6 +272,17 @@ class Server:
             if not line:
                 break
             text = line.decode("utf-8", "replace").rstrip("\r\n")
+            # Littéraux IMAP (« {n} » en fin de ligne) : noms de dossiers à caractères spéciaux. On répond « + » puis on lit n octets.
+            while True:
+                m = re.search(r"\{(\d+)(\+?)\}$", text)
+                if not m:
+                    break
+                if not m.group(2):
+                    writer.write(b"+ go ahead\r\n")
+                    await writer.drain()
+                data = await reader.readexactly(int(m.group(1)))
+                tail = (await reader.readline()).decode("utf-8", "replace").rstrip("\r\n")
+                text = text[: m.start()] + '"' + data.decode("utf-8", "replace") + '"' + tail
             if not text:
                 continue
             tag, _, rest = text.partition(" ")
@@ -405,12 +450,13 @@ async def main():
     ap.add_argument("--messages", type=int, default=100000)
     ap.add_argument("--log", default=None)
     ap.add_argument("--extra-folders", action="store_true", help="ajoute Factures, « Été » et Junk")
+    ap.add_argument("--tree", action="store_true", help="ajoute un gros arbre de dossiers sur 6 niveaux")
     args = ap.parse_args()
     global LOG_PATH
     LOG_PATH = args.log
     if LOG_PATH:
         open(LOG_PATH, "w").close()
-    srv = Server(args.messages, args.extra_folders)
+    srv = Server(args.messages, args.extra_folders, args.tree)
     server = await asyncio.start_server(srv.handle, "127.0.0.1", args.port, limit=1 << 20)
     print(f"prêt 127.0.0.1:{args.port} INBOX={args.messages}", flush=True)
     async with server:

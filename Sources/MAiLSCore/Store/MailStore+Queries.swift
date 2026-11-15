@@ -27,6 +27,11 @@ public struct FolderSummary: Sendable, Equatable, Identifiable {
     public var uidValidity: UInt32?
     public var messageCount: Int
     public var unreadCount: Int
+    /// Séparateur de hiérarchie du serveur (`/` par défaut).
+    public var delimiter: String = "/"
+    public var pinned: Bool = false
+    /// Vrai quand les compteurs sont réels : dossier synchronisé, ou compteurs lus par `STATUS`. Faux : on ne sait pas encore.
+    public var countsKnown: Bool = true
 
     /// Nom lisible (accents décodés) ; `path` reste le nom brut à envoyer au serveur.
     public var displayPath: String { MailboxText.decode(path) }
@@ -76,14 +81,23 @@ extension MailStore {
     public func folderSummaries(accountID: Int64) async throws -> [FolderSummary] {
         try await pool.read { db in
             try Row.fetchAll(db, sql: """
-                SELECT f.id, f.path, f.role, f.uid_validity,
+                SELECT f.id, f.path, f.role, f.uid_validity, f.pinned, f.delimiter, f.last_sync_at, f.status_messages, f.status_unseen,
                        COUNT(m.id) AS total, COALESCE(SUM(CASE WHEN m.flags & 1 = 0 THEN 1 ELSE 0 END), 0) AS unread
                 FROM folders f LEFT JOIN messages m ON m.folder_id = f.id
                 WHERE f.account_id = ? GROUP BY f.id
                 """, arguments: [accountID]).map { row in
-                FolderSummary(
+                // Dossier synchronisé (ou en cours de synchro) : compteurs locaux. Sinon : compteurs lus par STATUS, s'ils existent.
+                let synced = (row["last_sync_at"] as Int64?) != nil || (row["total"] as Int) > 0
+                let statusMessages: Int? = row["status_messages"]
+                let statusUnseen: Int? = row["status_unseen"]
+                let delimiter: String? = row["delimiter"]
+                return FolderSummary(
                     id: row["id"], path: row["path"], role: row["role"], uidValidity: row["uid_validity"],
-                    messageCount: row["total"], unreadCount: row["unread"])
+                    messageCount: synced ? row["total"] : (statusMessages ?? 0),
+                    unreadCount: synced ? row["unread"] : (statusUnseen ?? 0),
+                    delimiter: delimiter ?? "/",
+                    pinned: (row["pinned"] as Int) != 0,
+                    countsKnown: synced || statusMessages != nil)
             }
         }
     }

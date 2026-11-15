@@ -32,6 +32,8 @@ public actor AccountSession {
     private var folderIDs: [String: Int64] = [:]
     /// Dossiers hors des cinq principaux que l'utilisateur a ouverts : ils suivent ensuite les resynchros complètes.
     private var openedPaths: Set<String> = []
+    /// Dossiers dont les compteurs (messages, non lus) restent à lire par STATUS ; traités par lots, après les demandes de l'utilisateur.
+    private var statusQueue: [String] = []
 
     private struct BodyRequest {
         let id: UUID
@@ -255,11 +257,29 @@ public actor AccountSession {
         for folder in listing where folder.selectable {
             let mainRole = folderPaths.first(where: { $0.value == folder.path })?.key.rawValue
             let role = mainRole ?? (folder.role == "junk" ? "junk" : nil)
-            ids[folder.path] = try await store.ensureFolder(accountID: accountID, path: folder.path, role: role).id
+            ids[folder.path] = try await store.ensureFolder(accountID: accountID, path: folder.path, role: role, delimiter: folder.delimiter).id
         }
         folderIDs = ids
         openedPaths.formIntersection(ids.keys)
         try await store.pruneFolders(accountID: accountID, keeping: Array(ids.keys))
+        queueStatusSweep()
+    }
+
+    /// Compteurs de tous les dossiers jamais ouverts : les cinq principaux et les dossiers ouverts ont déjà leurs messages en base.
+    private func queueStatusSweep() {
+        let synced = Set(folderPaths.values).union(openedPaths)
+        statusQueue = folderIDs.keys.filter { !synced.contains($0) }.sorted()
+    }
+
+    /// Lit les compteurs d'un lot de dossiers (`STATUS`, lecture seule) puis les enregistre. Un refus ponctuel n'interrompt rien.
+    private func runStatusBatch(_ session: IMAPSession) async throws {
+        let batch = Array(statusQueue.prefix(25))
+        statusQueue.removeFirst(batch.count)
+        var results: [(path: String, counts: FolderCounts)] = []
+        for path in batch {
+            do { results.append((path, try await session.status(path))) } catch MoteurError.commandFailed { continue }
+        }
+        try await store.setFolderStatuses(accountID: accountID, results)
     }
 
     private func serveLoop(_ session: IMAPSession) async throws {
@@ -274,6 +294,10 @@ public actor AccountSession {
             if !syncQueue.isEmpty {
                 let request = syncQueue.removeFirst()
                 try await runSync(request, session, current: &current)
+                continue
+            }
+            if !statusQueue.isEmpty {
+                try await runStatusBatch(session)
                 continue
             }
             if case .online = state {} else { setState(.online(since: Date())) }
@@ -315,6 +339,7 @@ public actor AccountSession {
             targets = FolderRole.syncOrder.compactMap { role in folderPaths[role].map { ($0, role.rawValue) } }
             let main = Set(targets.map(\.path))
             targets += openedPaths.subtracting(main).sorted().map { ($0, nil) }
+            queueStatusSweep()  // resynchro complète : les compteurs des autres dossiers sont relus aussi
         }
         let engine = SyncEngine(store: store, batchSize: 1000)
         for target in targets {

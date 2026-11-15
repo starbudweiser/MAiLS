@@ -15,8 +15,8 @@ struct AccountSessionTests {
         let accountID: Int64
     }
 
-    private func makeRig(messages: Int, password: String? = "test", port: UInt16? = nil, idleRenewal: Duration = .seconds(25 * 60), extraFolders: Bool = false) async throws -> Rig {
-        let server = try TestServer(messages: messages, port: port, extraFolders: extraFolders)
+    private func makeRig(messages: Int, password: String? = "test", port: UInt16? = nil, idleRenewal: Duration = .seconds(25 * 60), extraFolders: Bool = false, tree: Bool = false) async throws -> Rig {
+        let server = try TestServer(messages: messages, port: port, extraFolders: extraFolders, tree: tree)
         let store = try MailStore(path: temporaryDatabasePath())
         var config = AccountConfig(label: "essai", host: "127.0.0.1", port: server.port, useTLS: false, username: "test")
         config = try await store.saveAccount(config)
@@ -67,8 +67,16 @@ struct AccountSessionTests {
         let byPath = Dictionary(uniqueKeysWithValues: summaries.map { ($0.path, $0) })
         #expect(byPath["Junk"]?.role == "junk")
         #expect(byPath["Factures"]?.role == nil && byPath["&AMk-t&AOk-"]?.displayPath == "Été")
-        // Hors des cinq principaux : rien n'est téléchargé tant que le dossier n'est pas ouvert.
-        #expect(byPath["Factures"]?.messageCount == 0 && byPath["Junk"]?.messageCount == 0)
+        // Hors des cinq principaux : aucun message n'est téléchargé tant que le dossier n'est pas ouvert...
+        #expect(try await rig.store.messageCount(folderID: byPath["Factures"]!.id) == 0)
+        #expect(try await rig.store.messageCount(folderID: byPath["Junk"]!.id) == 0)
+        // ... mais leurs compteurs sont lus par STATUS, sans ouvrir le dossier.
+        #expect(try await wait {
+            let s = try await rig.store.folderSummaries(accountID: rig.accountID)
+            let f = s.first { $0.path == "Factures" }, j = s.first { $0.path == "Junk" }, e = s.first { $0.path == "&AMk-t&AOk-" }
+            return f?.countsKnown == true && f?.messageCount == 30 && j?.messageCount == 5 && e?.messageCount == 12 && j?.unreadCount == 5
+        })
+        #expect(rig.server.commandLog().contains { $0.contains("STATUS") })
         #expect(byPath["INBOX"]?.messageCount == 200)
         // Ouverture : synchro de ce dossier-là seulement.
         await rig.session.openFolder(path: "Factures")
@@ -81,6 +89,25 @@ struct AccountSessionTests {
         try rig.server.admin("XADD 3", folder: "Factures")
         await rig.session.refresh()
         #expect(try await wait { try await rig.store.messageCount(folderID: byPath["Factures"]!.id) == 33 })
+    }
+
+    @Test func grosArbreCompteursDeTousLesDossiers() async throws {
+        let rig = try await makeRig(messages: 50, tree: true)
+        await rig.session.start()
+        defer { Task { await rig.session.stop() } }
+        // Dossiers à noms avec espaces, « & » (UTF-7 : « &- ») et six niveaux : tous reçoivent leurs compteurs, sans rien télécharger.
+        #expect(try await wait(30) {
+            let s = try await rig.store.folderSummaries(accountID: rig.accountID).filter { $0.role == nil }
+            return s.count == 45 && s.allSatisfy(\.countsKnown)
+        }, "compteurs de tous les dossiers attendus")
+        let state = await rig.session.state
+        if case .offline(let detail) = state { Issue.record("session hors ligne : \(detail)") }
+        let summaries = try await rig.store.folderSummaries(accountID: rig.accountID)
+        #expect(summaries.contains { $0.path == "ADMINISTRATIONS/BANQUE/PAYPAL/1&-1" && $0.displayPath.hasSuffix("1&1") })
+        #expect(summaries.contains { $0.path.hasSuffix("LITIGE STELLANTIS/CUSTOMER SERVICES") })
+        #expect(summaries.filter { $0.role == nil }.contains { $0.messageCount == 0 })  // des dossiers vides, connus comme tels
+        let tree = FolderTree.build(summaries)
+        #expect(tree.map(\.name) == ["ADMINISTRATIONS", "EMPLOI", "PERSONNEL", "PROFESSIONNEL"])
     }
 
     @Test func ouvertureDUnMessagePuisCache() async throws {

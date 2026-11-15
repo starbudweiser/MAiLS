@@ -53,6 +53,14 @@ public struct FolderListing: Sendable, Equatable {
     /// `sent`, `trash`, `archive`, `drafts`, `junk` d'après les attributs SPECIAL-USE, sinon `nil`.
     public var role: String?
     public var selectable: Bool
+    /// Séparateur de hiérarchie annoncé par le serveur (`/` chez iCloud), `nil` s'il n'en annonce pas.
+    public var delimiter: String? = nil
+}
+
+/// Compteurs d'un dossier lus par `STATUS` (sans l'ouvrir).
+public struct FolderCounts: Sendable, Equatable {
+    public var messages: Int
+    public var unseen: Int
 }
 
 /// Un message tel que reçu : en-têtes bruts, pas encore analysés.
@@ -112,7 +120,7 @@ public struct IMAPSession: Sendable {
                         : attrs.contains(Self.draftsAttribute) ? "drafts"
                         : attrs.contains(Self.junkAttribute) ? "junk"
                         : nil
-                    folders.append(FolderListing(path: path, role: role, selectable: selectable))
+                    folders.append(FolderListing(path: path, role: role, selectable: selectable, delimiter: info.path.pathSeparator.map { String($0) }))
                 case .tagged(let tagged):
                     try tagged.checkOK()
                 default:
@@ -120,6 +128,26 @@ public struct IMAPSession: Sendable {
                 }
             }
             return folders
+        }
+    }
+
+    /// Nombre de messages et de non lus d'un dossier (`STATUS`, lecture seule : le dossier n'est ni ouvert ni modifié).
+    public func status(_ path: String) async throws -> FolderCounts {
+        let name = MailboxName(Array(path.utf8))
+        return try await connection.send(.status(name, [.messageCount, .unseenCount])) { _, responses in
+            var counts = FolderCounts(messages: 0, unseen: 0)
+            for try await response in responses {
+                switch response {
+                case .untagged(.mailboxData(.status(_, let status))):
+                    counts.messages = status.messageCount ?? 0
+                    counts.unseen = status.unseenCount ?? 0
+                case .tagged(let tagged):
+                    do { _ = try tagged.getOK() } catch { throw MoteurError.commandFailed("STATUS \(path) : \(tagged.state)") }
+                default:
+                    break
+                }
+            }
+            return counts
         }
     }
 

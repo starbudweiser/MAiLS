@@ -88,6 +88,36 @@ struct StoreQueryTests {
         #expect(try await store.search(folderID: nil, query: "a").isEmpty)      // ses messages sont partis avec lui
     }
 
+    @Test func compteursStatusEpinglesEtSeparateur() async throws {
+        let store = try MailStore(path: temporaryDatabasePath())
+        let account = try await store.ensureAccount(label: "t", host: "h", port: 1, username: "u")
+        let never = try await store.ensureFolder(accountID: account, path: "Factures", role: nil, delimiter: "/")
+        let synced = try await store.ensureFolder(accountID: account, path: "INBOX", role: "inbox")
+        try await store.upsert([message(1, subject: "a"), message(2, subject: "b", flags: .seen)], folderID: synced.id)
+        try await store.setFolderState(folderID: synced.id, uidValidity: 1, uidNext: 3, syncFloor: 1, now: 1)
+
+        func summary(_ id: Int64) async throws -> FolderSummary {
+            try #require(try await store.folderSummaries(accountID: account).first { $0.id == id })
+        }
+        // Jamais lu : on ne sait rien (et on ne dit pas « 0 non lu »).
+        #expect(try await summary(never.id).countsKnown == false)
+        try await store.setFolderStatuses(accountID: account, [(path: "Factures", counts: FolderCounts(messages: 30, unseen: 4)), (path: "Inconnu", counts: FolderCounts(messages: 1, unseen: 1))])
+        let factures = try await summary(never.id)
+        #expect(factures.countsKnown && factures.messageCount == 30 && factures.unreadCount == 4 && factures.delimiter == "/")
+        // Dossier synchronisé : ses messages locaux priment sur STATUS.
+        try await store.setFolderStatuses(accountID: account, [(path: "INBOX", counts: FolderCounts(messages: 999, unseen: 999))])
+        let inbox = try await summary(synced.id)
+        #expect(inbox.messageCount == 2 && inbox.unreadCount == 1)
+        // Épinglés et séparateur.
+        #expect(factures.pinned == false)
+        try await store.setPinned(folderID: never.id, pinned: true)
+        #expect(try await summary(never.id).pinned)
+        _ = try await store.ensureFolder(accountID: account, path: "Factures", role: nil, delimiter: ".")
+        #expect(try await summary(never.id).delimiter == ".")
+        try await store.setPinned(folderID: never.id, pinned: false)
+        #expect(try await summary(never.id).pinned == false)
+    }
+
     @Test func notificationsDeChangement() async throws {
         let store = try MailStore(path: temporaryDatabasePath())
         let account = try await store.ensureAccount(label: "t", host: "h", port: 1, username: "u")

@@ -25,6 +25,16 @@ Référence : `/Volumes/SKYRIM/TOOLS/DESIGN/Socle` (README, `tokens.json`) ; ver
 | Nom de l'appli | « MAiLS » dont le **i** prend la couleur du logo (`Brand.swift`, `Socle.brand("MAiLS", color:)`) ; texte normal dans les menus déroulants |
 | Taille du texte | tokens × 1,1 (`Socle.scale`), automatique |
 
+## 2 bis. Barre latérale des dossiers (15/11/2026)
+Compte réel : 788 dossiers, 6 niveaux, 4 racines. Une liste à plat ne tient pas (noms coupés sur deux lignes). Règles retenues :
+- Une ligne par dossier (28 px) : retrait de 12 px par niveau, flèche pour déplier, nom du dernier niveau seul, chemin complet en infobulle, jamais de retour à la ligne.
+- Au-dessus de l'arbre : champ « Aller à un dossier » (⌘J ; ↑ ↓ Entrée, Échap), les dossiers principaux, les épinglés (nom + chemin du parent en sous-ligne). L'épingle apparaît au survol ou sur le dossier ouvert, à la place du nombre de non lus.
+- Un parent replié montre le total de non lus de son contenu ; déplié, seulement les siens. Les compteurs inconnus ne s'affichent pas (jamais de « 0 » inventé).
+- Interrupteur « masquer les dossiers vides » : cache seulement les dossiers dont on sait qu'ils sont vides (compteur connu à 0, sans contenu dans leurs sous-dossiers).
+- Chemin du dossier ouvert au-dessus de la liste des messages (trois derniers niveaux, « … » devant le reste), chaque niveau qui est un dossier se clique.
+- Flèches du clavier dans l'arbre : ↑ ↓ changent de dossier, → déplie, ← replie ou remonte au parent.
+- Fenêtre : `windowResizability(.contentMinSize)`, sinon SwiftUI agrandit la fenêtre d'elle-même quand le contenu change.
+
 ## 3. Métriques de départ (à confirmer sur l'écran réel)
 Barre latérale ≥ `Socle.M.sizeSidebarMin` (200), liste ≈ 340 (300–450), lecture ≥ 480, ligne de message 64 px.
 

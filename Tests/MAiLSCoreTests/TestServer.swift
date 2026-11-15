@@ -6,7 +6,7 @@ final class TestServer: @unchecked Sendable {
     let logPath: String
     private let process = Process()
 
-    init(messages: Int, port: UInt16? = nil, extraFolders: Bool = false) throws {
+    init(messages: Int, port: UInt16? = nil, extraFolders: Bool = false, tree: Bool = false) throws {
         self.port = port ?? UInt16.random(in: 20000...39000)
         let dir = NSTemporaryDirectory() + "moteur-\(UUID().uuidString)"
         try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
@@ -18,7 +18,7 @@ final class TestServer: @unchecked Sendable {
         process.arguments = [
             "python3", "-I", root.appendingPathComponent("Fixtures/fake_imap_server.py").path,
             "--port", "\(self.port)", "--messages", "\(messages)", "--log", logPath,
-        ] + (extraFolders ? ["--extra-folders"] : [])
+        ] + (extraFolders ? ["--extra-folders"] : []) + (tree ? ["--tree"] : [])
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe

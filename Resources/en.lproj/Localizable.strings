@@ -62,3 +62,17 @@
 "about.disclaimer" = "MAiLS reads your mail without ever changing it.";
 "about.credit" = "Made with Claude Code.";
 "date.yesterday" = "Yesterday";
+
+"sidebar.jump" = "Go to a folder…";
+"sidebar.jump.help" = "Go to a folder (⌘J)";
+"sidebar.pinned" = "Pinned";
+"sidebar.folders" = "Folders";
+"sidebar.hideEmpty" = "Hide empty folders";
+"sidebar.showEmpty" = "Show empty folders";
+"sidebar.pin" = "Pin";
+"sidebar.unpin" = "Unpin";
+"sidebar.collapseAll" = "Collapse all";
+"sidebar.noResults" = "No folder matches.";
+"sidebar.footer" = "%@ · %d folders";
+"sidebar.unread" = "%@, %d unread";
+"menu.jump" = "Go to a Folder";

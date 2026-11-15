@@ -7,13 +7,19 @@ struct MessageColumn: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        ZStack {
-            MessageListView(model: model, query: model.query, revision: model.listRevision, role: currentRole)
-            if model.listCount == 0, model.query != nil {
-                Text(model.query?.search == nil ? L("list.empty") : L("list.noResults"))
-                    .socle(Socle.T.body)
-                    .foregroundStyle(Socle.C.textSubtle)
-                    .allowsHitTesting(false)
+        VStack(spacing: 0) {
+            if let folder = model.selectedFolder, folder.role == nil {
+                PathBar(folder: folder)
+                Rectangle().fill(Socle.C.border).frame(height: 1)
+            }
+            ZStack {
+                MessageListView(model: model, query: model.query, revision: model.listRevision, role: currentRole)
+                if model.listCount == 0, model.query != nil {
+                    Text(model.query?.search == nil ? L("list.empty") : L("list.noResults"))
+                        .socle(Socle.T.body)
+                        .foregroundStyle(Socle.C.textSubtle)
+                        .allowsHitTesting(false)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -21,6 +27,43 @@ struct MessageColumn: View {
     }
 
     private var currentRole: String? { model.folders.first(where: { $0.id == model.selectedFolderID })?.role }
+}
+
+/// Chemin du dossier ouvert, au-dessus de la liste : chaque niveau qui est un dossier se clique pour remonter.
+private struct PathBar: View {
+    @Environment(AppModel.self) private var model
+    let folder: FolderSummary
+
+    var body: some View {
+        let all = FolderTree.breadcrumb(for: folder)
+        // Les trois derniers niveaux ; les plus hauts se résument en « … » (le chemin complet est dans l'infobulle).
+        let hidden = max(0, all.count - 3)
+        let crumbs = Array(all.suffix(3))
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Socle.M.space1_5) {
+                if hidden > 0 {
+                    Text("…").foregroundStyle(Socle.C.textSubtle).help(folder.displayPath)
+                }
+                ForEach(Array(crumbs.enumerated()), id: \.offset) { index, crumb in
+                    if index > 0 || hidden > 0 { Text("›").foregroundStyle(Socle.C.textSubtle).accessibilityHidden(true) }
+                    if index == crumbs.count - 1 {
+                        Text(crumb.name).socle(Socle.T.labelStrong).foregroundStyle(Socle.C.textStrong)
+                    } else if let target = model.folder(atPath: crumb.path) {
+                        Button { model.selectFolder(target.id) } label: { Text(crumb.name).foregroundStyle(Socle.C.textMuted) }
+                            .buttonStyle(.plain)
+                    } else {
+                        Text(crumb.name).foregroundStyle(Socle.C.textMuted)
+                    }
+                }
+            }
+            .socle(Socle.T.meta)
+            .lineLimit(1)
+            .padding(.horizontal, Socle.M.space4)
+        }
+        .defaultScrollAnchor(.trailing)
+        .frame(height: Socle.M.sizeControl)
+        .background(Socle.C.surfaceRaised)
+    }
 }
 
 /// `NSTableView` paginée : 120 Hz sur des dizaines de milliers de messages. Seules les pages visibles (200 lignes) sont chargées.

@@ -141,6 +141,13 @@ public final class MailStore: Sendable {
         m.registerMigration("v2") { db in
             try db.execute(sql: "ALTER TABLE accounts ADD COLUMN use_tls INTEGER NOT NULL DEFAULT 1")
         }
+        m.registerMigration("v3") { db in
+            // Arbre des dossiers : compteurs lus par STATUS (dossiers jamais ouverts), épinglés, séparateur de hiérarchie.
+            try db.execute(sql: "ALTER TABLE folders ADD COLUMN status_messages INTEGER")
+            try db.execute(sql: "ALTER TABLE folders ADD COLUMN status_unseen INTEGER")
+            try db.execute(sql: "ALTER TABLE folders ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0")
+            try db.execute(sql: "ALTER TABLE folders ADD COLUMN delimiter TEXT")
+        }
         return m
     }
 
@@ -157,11 +164,16 @@ public final class MailStore: Sendable {
         }
     }
 
-    public func ensureFolder(accountID: Int64, path: String, role: String?) async throws -> FolderState {
+    public func ensureFolder(accountID: Int64, path: String, role: String?, delimiter: String? = nil) async throws -> FolderState {
         try await pool.write { db in
             try db.execute(
                 sql: "INSERT OR IGNORE INTO folders(account_id, path, role) VALUES (?, ?, ?)",
                 arguments: [accountID, path, role])
+            if let delimiter {
+                try db.execute(
+                    sql: "UPDATE folders SET delimiter = ? WHERE account_id = ? AND path = ? AND IFNULL(delimiter, '') != ?",
+                    arguments: [delimiter, accountID, path, delimiter])
+            }
             guard let row = try Row.fetchOne(
                 db, sql: "SELECT id, path, uid_validity, uid_next, sync_floor FROM folders WHERE account_id = ? AND path = ?",
                 arguments: [accountID, path])
@@ -183,6 +195,27 @@ public final class MailStore: Sendable {
                 sql: "DELETE FROM folders WHERE account_id = ? AND path NOT IN (\(marks))",
                 arguments: StatementArguments(values))
         }
+    }
+
+    /// Enregistre les compteurs lus par `STATUS` (dossiers jamais ouverts : leurs messages ne sont pas en base).
+    public func setFolderStatuses(accountID: Int64, _ statuses: [(path: String, counts: FolderCounts)]) async throws {
+        guard !statuses.isEmpty else { return }
+        try await pool.write { db in
+            for s in statuses {
+                try db.execute(
+                    sql: "UPDATE folders SET status_messages = ?, status_unseen = ? WHERE account_id = ? AND path = ?",
+                    arguments: [s.counts.messages, s.counts.unseen, accountID, s.path])
+            }
+        }
+        hub.send(0)  // 0 : aucun dossier en particulier, seulement la liste des dossiers à relire
+    }
+
+    /// Épingle ou désépingle un dossier (réglage local, rien n'est écrit sur le serveur).
+    public func setPinned(folderID: Int64, pinned: Bool) async throws {
+        try await pool.write { db in
+            try db.execute(sql: "UPDATE folders SET pinned = ? WHERE id = ?", arguments: [pinned ? 1 : 0, folderID])
+        }
+        hub.send(0)
     }
 
     public func setFolderState(

@@ -11,9 +11,9 @@ struct RootView: View {
             HeaderBar()
             Rectangle().fill(Socle.C.border).frame(height: 1)
             HSplitView {
-                SidebarView().frame(minWidth: Socle.M.sizeSidebarMin, idealWidth: 220, maxWidth: 280)
+                SidebarView().frame(minWidth: 240, idealWidth: 300, maxWidth: 420)
                 MessageColumn().frame(minWidth: 300, idealWidth: 360, maxWidth: 520)
-                ReaderView().frame(minWidth: 480, maxWidth: .infinity)
+                ReaderView().frame(minWidth: 480, maxWidth: .infinity).layoutPriority(1)
             }
         }
         .background(Socle.C.bg)

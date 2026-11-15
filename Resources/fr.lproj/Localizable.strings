@@ -62,3 +62,17 @@
 "about.disclaimer" = "MAiLS lit votre courrier sans jamais le modifier.";
 "about.credit" = "Fait avec Claude Code.";
 "date.yesterday" = "Hier";
+
+"sidebar.jump" = "Aller à un dossier…";
+"sidebar.jump.help" = "Aller à un dossier (⌘J)";
+"sidebar.pinned" = "Épinglés";
+"sidebar.folders" = "Dossiers";
+"sidebar.hideEmpty" = "Masquer les dossiers vides";
+"sidebar.showEmpty" = "Afficher les dossiers vides";
+"sidebar.pin" = "Épingler";
+"sidebar.unpin" = "Retirer des épinglés";
+"sidebar.collapseAll" = "Tout replier";
+"sidebar.noResults" = "Aucun dossier ne correspond.";
+"sidebar.footer" = "%@ · %d dossiers";
+"sidebar.unread" = "%@, %d non lus";
+"menu.jump" = "Aller à un dossier";
