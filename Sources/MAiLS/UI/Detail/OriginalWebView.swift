@@ -68,7 +68,7 @@ struct OriginalWebView: NSViewRepresentable {
                 Task { @MainActor in
                     guard let self else { return }
                     self.compiling = false
-                    if list == nil { self.onFailure(error.map { String(describing: $0) } ?? "règle de blocage absente") }
+                    if list == nil { self.onFailure(error.map { String(describing: $0) } ?? L("err.blockrule")) }
                     if let list { self.web?.configuration.userContentController.add(list) }
                     self.ruleListReady = list != nil  // sans règle de blocage, on n'affiche rien
                     if self.ruleListReady { self.load() }

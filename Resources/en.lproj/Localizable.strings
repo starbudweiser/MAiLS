@@ -78,3 +78,11 @@
 "menu.jump" = "Go to a Folder";
 "sidebar.expand" = "Expand";
 "sidebar.collapse" = "Collapse";
+"err.plaintext" = "Connection without TLS refused to %@: the password is never sent in clear text.";
+"err.auth" = "Authentication refused: %@";
+"err.command" = "Command refused by the server: %@";
+"err.protocol" = "Unexpected server response: %@";
+"err.toolarge" = "Message larger than the limit of %d bytes.";
+"err.offline" = "No connection to the server.";
+"err.timeout" = "The server did not respond in time.";
+"err.blockrule" = "blocking rule missing";

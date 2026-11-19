@@ -78,3 +78,11 @@
 "menu.jump" = "Ir a una carpeta";
 "sidebar.expand" = "Expandir";
 "sidebar.collapse" = "Contraer";
+"err.plaintext" = "Conexión sin TLS rechazada hacia %@: la contraseña nunca se envía en claro.";
+"err.auth" = "Autenticación rechazada: %@";
+"err.command" = "Comando rechazado por el servidor: %@";
+"err.protocol" = "Respuesta inesperada del servidor: %@";
+"err.toolarge" = "Mensaje mayor que el límite de %d bytes.";
+"err.offline" = "Sin conexión con el servidor.";
+"err.timeout" = "El servidor no respondió a tiempo.";
+"err.blockrule" = "regla de bloqueo ausente";

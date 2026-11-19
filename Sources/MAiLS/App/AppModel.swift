@@ -433,7 +433,16 @@ extension AppModel.ReaderState {
 
 extension AccountSession {
     nonisolated static func describeForUser(_ error: Error) -> String {
-        if let e = error as? MoteurError { return e.description }
-        return error.localizedDescription
+        guard let e = error as? MoteurError else { return error.localizedDescription }
+        // Le moteur (MAiLSCore) reste sans interface : le texte visible est composé ici, dans la langue de l'utilisateur.
+        switch e {
+        case .plaintextLoginRefused(let host): return L("err.plaintext", host)
+        case .authenticationFailed(let t): return L("err.auth", t)
+        case .commandFailed(let t): return L("err.command", t)
+        case .protocolViolation(let t): return L("err.protocol", t)
+        case .messageTooLarge(let limit): return L("err.toolarge", limit)
+        case .offline: return L("err.offline")
+        case .timedOut: return L("err.timeout")
+        }
     }
 }

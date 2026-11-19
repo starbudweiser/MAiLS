@@ -78,3 +78,11 @@
 "menu.jump" = "Aller à un dossier";
 "sidebar.expand" = "Déplier";
 "sidebar.collapse" = "Replier";
+"err.plaintext" = "Connexion sans TLS refusée vers %@ : le mot de passe ne part pas en clair.";
+"err.auth" = "Authentification refusée : %@";
+"err.command" = "Commande refusée par le serveur : %@";
+"err.protocol" = "Réponse inattendue du serveur : %@";
+"err.toolarge" = "Message plus grand que la limite de %d octets.";
+"err.offline" = "Pas de connexion au serveur.";
+"err.timeout" = "Le serveur n’a pas répondu à temps.";
+"err.blockrule" = "règle de blocage absente";

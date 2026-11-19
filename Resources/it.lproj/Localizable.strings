@@ -78,3 +78,11 @@
 "menu.jump" = "Vai a una cartella";
 "sidebar.expand" = "Espandi";
 "sidebar.collapse" = "Comprimi";
+"err.plaintext" = "Connessione senza TLS rifiutata verso %@: la password non viene mai inviata in chiaro.";
+"err.auth" = "Autenticazione rifiutata: %@";
+"err.command" = "Comando rifiutato dal server: %@";
+"err.protocol" = "Risposta inattesa dal server: %@";
+"err.toolarge" = "Messaggio più grande del limite di %d byte.";
+"err.offline" = "Nessuna connessione al server.";
+"err.timeout" = "Il server non ha risposto in tempo.";
+"err.blockrule" = "regola di blocco assente";
