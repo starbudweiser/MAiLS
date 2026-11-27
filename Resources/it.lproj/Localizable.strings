@@ -86,3 +86,21 @@
 "err.offline" = "Nessuna connessione al server.";
 "err.timeout" = "Il server non ha risposto in tempo.";
 "err.blockrule" = "regola di blocco assente";
+
+"menu.settings" = "Impostazioni…";
+"menu.checkUpdate" = "Cerca aggiornamenti…";
+"upd.title" = "Aggiornamenti";
+"upd.auto" = "Cerca aggiornamenti automaticamente (una volta al giorno)";
+"upd.check" = "Cerca aggiornamenti";
+"upd.download" = "Scarica la versione %@";
+"upd.version" = "Versione installata: %@";
+"upd.checking" = "Ricerca in corso…";
+"upd.uptodate" = "MAiLS è aggiornato (versione %@).";
+"upd.available" = "La versione %@ è disponibile.";
+"upd.downloading" = "Download e verifica della firma…";
+"upd.ready" = "La versione %@ è in Download: chiudi MAiLS e trascinala in Applicazioni.";
+"upd.failed" = "Errore: %@";
+"upd.err.none" = "Nessuna versione pubblicata trovata.";
+"upd.err.download" = "Il download è fallito.";
+"upd.err.signature" = "La firma dell’aggiornamento non è valida.";
+"upd.err.version" = "L’aggiornamento non corrisponde alla versione annunciata.";

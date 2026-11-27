@@ -86,3 +86,21 @@
 "err.offline" = "Pas de connexion au serveur.";
 "err.timeout" = "Le serveur n’a pas répondu à temps.";
 "err.blockrule" = "règle de blocage absente";
+
+"menu.settings" = "Réglages…";
+"menu.checkUpdate" = "Rechercher les mises à jour…";
+"upd.title" = "Mises à jour";
+"upd.auto" = "Rechercher les mises à jour automatiquement (une fois par jour)";
+"upd.check" = "Rechercher les mises à jour";
+"upd.download" = "Télécharger la version %@";
+"upd.version" = "Version installée : %@";
+"upd.checking" = "Recherche en cours…";
+"upd.uptodate" = "MAiLS est à jour (version %@).";
+"upd.available" = "La version %@ est disponible.";
+"upd.downloading" = "Téléchargement et vérification de la signature…";
+"upd.ready" = "La version %@ est dans Téléchargements : quittez MAiLS, puis glissez-la dans Applications.";
+"upd.failed" = "Échec : %@";
+"upd.err.none" = "Aucune version publiée trouvée.";
+"upd.err.download" = "Le téléchargement a échoué.";
+"upd.err.signature" = "La signature de la mise à jour n’est pas valide.";
+"upd.err.version" = "La mise à jour ne correspond pas à la version annoncée.";

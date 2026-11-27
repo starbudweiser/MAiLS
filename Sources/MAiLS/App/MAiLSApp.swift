@@ -11,6 +11,7 @@ struct MAiLSApp: App {
         Socle.brand(Brand.name, color: Brand.logoColor)
         do {
             _model = State(initialValue: try AppModel.makeDefault())
+            Task { @MainActor in Updater.shared.checkIfDue() }
         } catch {
             // Sans base de données l'appli ne peut rien faire : on le dit clairement plutôt que d'ouvrir une fenêtre vide.
             fputs("MAiLS : impossible d'ouvrir la base de données : \(error)\n", stderr)
@@ -29,7 +30,8 @@ struct MAiLSApp: App {
             // Dans les menus, le nom reste en texte normal (règle Socle).
             CommandGroup(replacing: .appInfo) {
                 Button(L("menu.about")) { About.show() }
-            }
+                }
+            UpdateCommands()
             CommandGroup(after: .textEditing) {
                 Button(L("menu.search")) { model.focusSearch() }.keyboardShortcut("f")
                 Button(L("menu.jump")) { model.focusJump() }.keyboardShortcut("j")
@@ -39,6 +41,21 @@ struct MAiLSApp: App {
                 Divider()
                 Button(L("menu.editAccount")) { model.showSetup = true }
                 Button(L("menu.removeAccount")) { model.showRemoveConfirmation = true }.disabled(model.account == nil)
+            }
+        }
+        Settings { UpdateSettingsView() }
+    }
+}
+
+/// « Rechercher les mises à jour… » : ouvre les réglages, où le résultat s'affiche, et lance la recherche.
+struct UpdateCommands: Commands {
+    @Environment(\.openSettings) private var openSettings
+
+    var body: some Commands {
+        CommandGroup(after: .appInfo) {
+            Button(L("menu.checkUpdate")) {
+                openSettings()
+                Task { await Updater.shared.check() }
             }
         }
     }

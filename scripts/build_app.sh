@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 MODE="${1:-dev}"
 SIGN="/Volumes/SKYRIM/TOOLS/MAC/_tools/sign_app.sh"
-VERSION="${MAILS_VERSION:-0.1.3}"
+VERSION="${MAILS_VERSION:-0.1.4}"
 
 case "$MODE" in
   dev)   APP="build/MAiLS Dev.app"; BUNDLE_ID="fr.stephan.mails.dev"; DISPLAY="MAiLS Dev" ;;

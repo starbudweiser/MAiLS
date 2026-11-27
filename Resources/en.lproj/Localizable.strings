@@ -86,3 +86,21 @@
 "err.offline" = "No connection to the server.";
 "err.timeout" = "The server did not respond in time.";
 "err.blockrule" = "blocking rule missing";
+
+"menu.settings" = "Settings…";
+"menu.checkUpdate" = "Check for Updates…";
+"upd.title" = "Updates";
+"upd.auto" = "Check for updates automatically (once a day)";
+"upd.check" = "Check for updates";
+"upd.download" = "Download version %@";
+"upd.version" = "Installed version: %@";
+"upd.checking" = "Checking…";
+"upd.uptodate" = "MAiLS is up to date (version %@).";
+"upd.available" = "Version %@ is available.";
+"upd.downloading" = "Downloading and verifying the signature…";
+"upd.ready" = "Version %@ is in Downloads: quit MAiLS, then drag it into Applications.";
+"upd.failed" = "Failed: %@";
+"upd.err.none" = "No published version found.";
+"upd.err.download" = "The download failed.";
+"upd.err.signature" = "The update’s signature is not valid.";
+"upd.err.version" = "The update does not match the announced version.";

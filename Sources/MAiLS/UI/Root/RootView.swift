@@ -16,6 +16,7 @@ struct RootView: View {
                 ReaderView().frame(minWidth: 480, maxWidth: .infinity).layoutPriority(1)
             }
         }
+        .ignoresSafeArea(.container, edges: .top)  // l'en-tête remonte dans la barre de titre, à hauteur des boutons de fenêtre
         .background(Socle.C.bg)
         .background(WindowConfigurator())
         .sheet(isPresented: $model.showSetup) { AccountSetupView() }
@@ -42,9 +43,13 @@ private struct HeaderBar: View {
             Spacer(minLength: Socle.M.space4)
             StatusBadge()
             TextField(L("search.placeholder"), text: $model.searchText)
-                .socleField()
+                .textFieldStyle(.plain)
                 .focused($searchFocused)
-                .frame(width: 300)
+                .padding(.horizontal, Socle.M.space3)
+                .frame(width: 300, height: Socle.M.sizeControl)  // 32 px comme le bouton : 4 px de marge en haut et en bas de la barre
+                .background(Socle.C.bgSunken, ignoresSafeAreaEdges: [])  // sinon le fond remonte jusqu'au bord de la fenêtre
+                .overlay(Rectangle().stroke(searchFocused ? Socle.C.focusRing : .clear, lineWidth: 1))
+                .foregroundStyle(Socle.C.textStrong)
                 .onChange(of: model.focusSearchTick) { searchFocused = true }
             Button { model.refresh() } label: {
                 Image(systemName: "arrow.clockwise")
@@ -105,6 +110,23 @@ private struct WindowConfigurator: NSViewRepresentable {
             window.minSize = NSSize(width: 1032, height: 640)
             window.setContentSize(NSSize(width: 1180, height: 760))
             window.socleCenter()
+            alignWindowButtons()
+            for name in [NSWindow.didResizeNotification, NSWindow.didEndLiveResizeNotification, NSWindow.didExitFullScreenNotification] {
+                NotificationCenter.default.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.alignWindowButtons() }
+                }
+            }
+        }
+
+        /// Centre les boutons de fenêtre dans la hauteur de l'en-tête (macOS les place pour une barre de titre plus basse).
+        private func alignWindowButtons() {
+            guard let window, let close = window.standardWindowButton(.closeButton), let bar = close.superview else { return }
+            let target = (Socle.M.sizeBar - close.frame.height) / 2  // distance du haut de la fenêtre
+            let y = bar.frame.height - target - close.frame.height
+            for kind in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+                guard let b = window.standardWindowButton(kind), b.frame.origin.y != y else { continue }
+                b.setFrameOrigin(NSPoint(x: b.frame.origin.x, y: y))
+            }
         }
     }
 }
